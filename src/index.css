@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -16,27 +18,67 @@
     @apply bg-zinc-50 font-sans text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50;
     margin: 0;
   }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-zinc-200 dark:bg-zinc-700 rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-zinc-300 dark:bg-zinc-600; }
+}
+
+/* ── Design tokens ─────────────────────────────────────────────────────── */
+:root {
+  --accent:        #0369a1;
+  --accent-soft:   #e0f2fe;
+  --accent-strong: #0c4a6e;
+  --success:       #059669;
+  --success-soft:  #d1fae5;
+  --warning:       #d97706;
+  --warning-soft:  #fef3c7;
+  --danger:        #dc2626;
+  --danger-soft:   #fee2e2;
+}
+
+/* ── Map grid pattern ──────────────────────────────────────────────────── */
+.map-grid {
+  background-image: radial-gradient(circle, #cbd5e1 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+.dark .map-grid {
+  background-image: radial-gradient(circle, #334155 1px, transparent 1px);
 }
 
 @layer utilities {
   .skeleton-shimmer {
-    background: linear-gradient(
-      90deg,
-      #f4f4f5 25%,
-      #e4e4e7 50%,
-      #f4f4f5 75%
-    );
+    background: linear-gradient(90deg, #f4f4f5 25%, #e4e4e7 50%, #f4f4f5 75%);
     background-size: 200% 100%;
     animation: shimmer 1.6s linear infinite;
   }
-
   .dark .skeleton-shimmer {
-    background: linear-gradient(
-      90deg,
-      #27272a 25%,
-      #3f3f46 50%,
-      #27272a 75%
-    );
+    background: linear-gradient(90deg, #27272a 25%, #3f3f46 50%, #27272a 75%);
     background-size: 200% 100%;
   }
+}
+
+/* ── Keyframes ─────────────────────────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+@keyframes pulseRing {
+  0%   { transform: scale(0.8); opacity: 0.6; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+@keyframes fadeIn {
+  0%   { opacity: 0; transform: translateY(4px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.animate-pulse-ring {
+  animation: pulseRing 1.4s ease-out infinite;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out both;
 }

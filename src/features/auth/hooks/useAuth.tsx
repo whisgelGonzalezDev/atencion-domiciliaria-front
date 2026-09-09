@@ -1,54 +1,66 @@
-import { useState, useCallback } from 'react'
+import { useState, useEffect, createContext, useContext } from 'react'
+import { apiClient } from '@/core/utils/apiClient'
 
 export interface AuthUser {
   id: string
   name: string
   email: string
-  role: 'admin' | 'viewer'
+  role: string
 }
 
-const SESSION_KEY = 'skeeleton_session'
-const MOCK_EMAIL = 'admin@skeeleton.com'
-const MOCK_PASSWORD = 'password123'
+interface AuthContextValue {
+  user: AuthUser | null
+  isAuthenticated: boolean
+  isLoading: boolean
+  login: (email: string, password: string) => Promise<void>
+  logout: () => void
+}
 
-function getStoredUser(): AuthUser | null {
-  try {
-    const raw = localStorage.getItem(SESSION_KEY)
-    return raw ? (JSON.parse(raw) as AuthUser) : null
-  } catch {
-    return null
+const AuthContext = createContext<AuthContextValue | null>(null)
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<AuthUser | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const token = localStorage.getItem('auth_token')
+    const stored = localStorage.getItem('auth_user')
+    if (token && stored) {
+      try {
+        setUser(JSON.parse(stored) as AuthUser)
+      } catch {
+        localStorage.removeItem('auth_token')
+        localStorage.removeItem('auth_user')
+      }
+    }
+    setIsLoading(false)
+  }, [])
+
+  const login = async (email: string, password: string) => {
+    const res = await apiClient<{ accessToken: string; user: AuthUser }>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    })
+    localStorage.setItem('auth_token', res.accessToken)
+    localStorage.setItem('auth_user', JSON.stringify(res.user))
+    setUser(res.user)
   }
-}
 
-function simulateApi(): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, 1000))
+  const logout = () => {
+    localStorage.removeItem('auth_token')
+    localStorage.removeItem('auth_user')
+    setUser(null)
+  }
+
+  return (
+    <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  )
 }
 
 export function useAuth() {
-  const [user, setUser] = useState<AuthUser | null>(getStoredUser)
-
-  const login = useCallback(async (email: string, password: string): Promise<void> => {
-    await simulateApi()
-
-    if (email === MOCK_EMAIL && password === MOCK_PASSWORD) {
-      const mockUser: AuthUser = {
-        id: '1',
-        name: 'Admin User',
-        email,
-        role: 'admin',
-      }
-      localStorage.setItem(SESSION_KEY, JSON.stringify(mockUser))
-      setUser(mockUser)
-      return
-    }
-
-    throw new Error('invalid_credentials')
-  }, [])
-
-  const logout = useCallback(() => {
-    localStorage.removeItem(SESSION_KEY)
-    setUser(null)
-  }, [])
-
-  return { user, login, logout, isAuthenticated: user !== null }
+  const ctx = useContext(AuthContext)
+  if (!ctx) throw new Error('useAuth must be used within AuthProvider')
+  return ctx
 }

@@ -1,82 +1,77 @@
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
 import {
-  Home,
-  BarChart2,
-  ShoppingCart,
-  Users,
-  Settings,
-  LogOut,
-  PanelLeft,
-  X,
+  Heart, Home, List, Stethoscope, Map, Settings,
+  LogOut, PanelLeft, X, Plus, Moon, Sun,
+  Users, CalendarClock, Receipt, ScrollText,
 } from 'lucide-react'
 import { useAuth } from '@/features/auth/hooks/useAuth'
-import { useNotify } from '@/core/hooks/useNotify'
-import { LanguageSelector } from '@/core/components'
-import { ThemeToggle } from '@/core/components/ThemeToggle'
+import { useTheme } from '@/core/providers/ThemeProvider'
+import { NewRequestModal } from '@/features/requests/components/NewRequestModal'
+import { OfflineBanner } from '@/core/components/OfflineBanner'
 
 interface NavItem {
   to: string
-  labelKey: string
+  label: string
   icon: React.ElementType
+  badge?: number
+  adminOnly?: boolean
 }
 
-const NAV_ITEMS: NavItem[] = [
-  { to: '/', labelKey: 'nav.home', icon: Home },
-  { to: '/analytics', labelKey: 'nav.analytics', icon: BarChart2 },
-  { to: '/sales', labelKey: 'nav.sales', icon: ShoppingCart },
-  { to: '/users', labelKey: 'nav.users', icon: Users },
-  { to: '/settings', labelKey: 'nav.settings', icon: Settings },
+const OPERATIONS_NAV_ITEMS: NavItem[] = [
+  { to: '/overview', label: 'Resumen',        icon: Home },
+  { to: '/requests', label: 'Solicitudes',     icon: List },
+  { to: '/staff',    label: 'Personal Médico', icon: Stethoscope },
+  { to: '/map',      label: 'Mapa de Zonas',   icon: Map },
 ]
 
-const NAV_LINK_BASE =
-  'group flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-100'
+const MANAGEMENT_NAV_ITEMS: NavItem[] = [
+  { to: '/patients',   label: 'Pacientes',    icon: Users },
+  { to: '/visits',     label: 'Visitas',      icon: CalendarClock },
+  { to: '/billing',    label: 'Facturación',  icon: Receipt },
+  { to: '/audit-logs', label: 'Auditoría',    icon: ScrollText, adminOnly: true },
+]
 
-const NAV_LINK_ACTIVE = 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white'
-
-const NAV_LINK_INACTIVE =
-  'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
+const BASE = 'group flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-100'
+const ACTIVE = 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white'
+const INACTIVE = 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
 
 export function DashboardLayout() {
-  const { t } = useTranslation()
   const { user, logout } = useAuth()
+  const isAdmin = user?.role === 'admin'
+  const { isDark, toggle: toggleTheme } = useTheme()
   const navigate = useNavigate()
-  const notify = useNotify()
   const [collapsed, setCollapsed] = useState(false)
+  const [modalOpen, setModalOpen] = useState(false)
 
   const handleLogout = () => {
     logout()
-    notify.info('common.logoutSuccess')
-    navigate('/auth/login')
+    navigate('/login')
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-zinc-50 dark:bg-zinc-950">
+    <div className="flex h-screen flex-col overflow-hidden bg-zinc-50 dark:bg-zinc-950">
+      <OfflineBanner />
+      <div className="flex flex-1 overflow-hidden">
       {/* Sidebar */}
       <aside
-        className={[
-          'flex flex-col border-r border-zinc-200 dark:border-zinc-800',
-          'bg-white dark:bg-zinc-900',
-          'transition-all duration-200',
-          collapsed ? 'w-16' : 'w-60',
-        ].join(' ')}
+        className="flex flex-col border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden shrink-0 transition-[width] duration-200"
+        style={{ width: collapsed ? '4rem' : '15rem' }}
       >
-        {/* Sidebar header */}
+        {/* Logo */}
         <div className="flex h-14 items-center justify-between border-b border-zinc-100 dark:border-zinc-800 px-4">
           {!collapsed && (
-            <span className="text-sm font-semibold text-zinc-900 dark:text-white tracking-tight truncate">
-              skeeleton<span className="text-zinc-400">-base</span>
-            </span>
+            <div className="flex items-center gap-2 min-w-0">
+              <Heart size={18} style={{ color: 'var(--accent)' }} className="shrink-0" />
+              <span className="text-sm font-semibold text-zinc-900 dark:text-white tracking-tight truncate">
+                Atención<span className="text-zinc-400">·domiciliaria</span>
+              </span>
+            </div>
           )}
           <button
-            onClick={() => setCollapsed((c) => !c)}
-            className="flex h-7 w-7 items-center justify-center rounded
-                       text-zinc-400 dark:text-zinc-500
-                       hover:bg-zinc-100 dark:hover:bg-zinc-800
-                       hover:text-zinc-700 dark:hover:text-zinc-300
-                       transition-colors ml-auto"
-            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            onClick={() => setCollapsed(c => !c)}
+            className="flex h-7 w-7 items-center justify-center rounded text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors ml-auto"
+            aria-label={collapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}
           >
             {collapsed ? <PanelLeft size={16} /> : <X size={16} />}
           </button>
@@ -84,41 +79,78 @@ export function DashboardLayout() {
 
         {/* Nav items */}
         <nav className="flex-1 overflow-y-auto p-2 space-y-0.5">
-          {NAV_ITEMS.map(({ to, labelKey, icon: Icon }) => (
+          {!collapsed && (
+            <p className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-widest text-zinc-400 dark:text-zinc-600">
+              Operaciones
+            </p>
+          )}
+          {OPERATIONS_NAV_ITEMS.map(({ to, label, icon: Icon, badge }) => (
             <NavLink
               key={to}
               to={to}
-              end={to === '/'}
-              className={({ isActive }) =>
-                [NAV_LINK_BASE, isActive ? NAV_LINK_ACTIVE : NAV_LINK_INACTIVE].join(' ')
-              }
-              title={collapsed ? t(labelKey) : undefined}
+              className={({ isActive }) => [BASE, isActive ? ACTIVE : INACTIVE].join(' ')}
+              title={collapsed ? label : undefined}
             >
               <Icon size={16} className="shrink-0" />
-              {!collapsed && <span className="truncate">{t(labelKey)}</span>}
+              {!collapsed && <span className="flex-1 truncate">{label}</span>}
+              {!collapsed && badge !== undefined && badge > 0 && (
+                <span
+                  className="ml-auto flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[10px] font-semibold text-white"
+                  style={{ backgroundColor: 'var(--accent)' }}
+                >
+                  {badge}
+                </span>
+              )}
             </NavLink>
           ))}
+
+          {!collapsed && (
+            <p className="px-3 pt-4 pb-1 text-[10px] font-semibold uppercase tracking-widest text-zinc-400 dark:text-zinc-600">
+              Gestión
+            </p>
+          )}
+          {MANAGEMENT_NAV_ITEMS.filter(item => !item.adminOnly || isAdmin).map(({ to, label, icon: Icon }) => (
+            <NavLink
+              key={to}
+              to={to}
+              className={({ isActive }) => [BASE, isActive ? ACTIVE : INACTIVE].join(' ')}
+              title={collapsed ? label : undefined}
+            >
+              <Icon size={16} className="shrink-0" />
+              {!collapsed && <span className="flex-1 truncate">{label}</span>}
+            </NavLink>
+          ))}
+
+          {!collapsed && (
+            <p className="px-3 pt-4 pb-1 text-[10px] font-semibold uppercase tracking-widest text-zinc-400 dark:text-zinc-600">
+              Sistema
+            </p>
+          )}
+          <NavLink
+            to="/settings"
+            className={({ isActive }) => [BASE, isActive ? ACTIVE : INACTIVE].join(' ')}
+            title={collapsed ? 'Configuración' : undefined}
+          >
+            <Settings size={16} className="shrink-0" />
+            {!collapsed && <span className="flex-1 truncate">Configuración</span>}
+          </NavLink>
         </nav>
 
-        {/* User section */}
+        {/* User footer */}
         <div className="border-t border-zinc-100 dark:border-zinc-800 p-2">
           {!collapsed && user && (
             <div className="px-3 py-2 mb-1">
               <p className="text-xs font-medium text-zinc-900 dark:text-white truncate">{user.name}</p>
-              <p className="text-xs text-zinc-400 dark:text-zinc-500 truncate">{user.email}</p>
+              <p className="text-xs text-zinc-400 dark:text-zinc-500 truncate">Coordinadora</p>
             </div>
           )}
           <button
             onClick={handleLogout}
-            className={[
-              NAV_LINK_BASE,
-              'w-full text-zinc-500 dark:text-zinc-400',
-              'hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-600 dark:hover:text-red-400',
-            ].join(' ')}
-            title={collapsed ? t('nav.logout') : undefined}
+            className={[BASE, 'w-full text-zinc-500 dark:text-zinc-400 hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-600 dark:hover:text-red-400'].join(' ')}
+            title={collapsed ? 'Cerrar sesión' : undefined}
           >
             <LogOut size={16} className="shrink-0" />
-            {!collapsed && <span>{t('nav.logout')}</span>}
+            {!collapsed && <span>Cerrar sesión</span>}
           </button>
         </div>
       </aside>
@@ -126,23 +158,40 @@ export function DashboardLayout() {
       {/* Main area */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Header */}
-        <header className="flex h-14 items-center justify-between border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-6">
-          {user ? (
-            <span className="text-sm font-medium text-zinc-900 dark:text-white">{user.name}</span>
-          ) : (
-            <div />
-          )}
-          <div className="flex items-center gap-1">
-            <ThemeToggle />
-            <LanguageSelector />
+        <header className="flex h-14 items-center justify-between border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-6 gap-4">
+          <div className="min-w-0 flex-1" />
+
+          <div className="flex items-center gap-2">
+            {isAdmin && (
+              <button
+                onClick={() => setModalOpen(true)}
+                className="hidden sm:inline-flex items-center gap-1.5 rounded px-3 h-8 text-xs font-medium text-white transition-colors"
+                style={{ backgroundColor: 'var(--accent)' }}
+                onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--accent-strong)')}
+                onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'var(--accent)')}
+              >
+                <Plus size={13} />
+                Nueva solicitud
+              </button>
+            )}
+
+            <button
+              onClick={toggleTheme}
+              className="flex h-8 w-8 items-center justify-center rounded text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+              aria-label="Toggle dark mode"
+            >
+              {isDark ? <Sun size={16} /> : <Moon size={16} />}
+            </button>
           </div>
         </header>
 
-        {/* Page content */}
         <main className="flex-1 overflow-y-auto p-6">
           <Outlet />
         </main>
       </div>
+      </div>
+
+      <NewRequestModal open={modalOpen} onClose={() => setModalOpen(false)} onCreated={() => setModalOpen(false)} />
     </div>
   )
 }

@@ -1,52 +1,109 @@
 import {
   createBrowserRouter,
+  Navigate,
   type RouteObject,
 } from 'react-router-dom'
 import { DashboardLayout } from '@/layout/DashboardLayout'
 import { LoginPage } from '@/features/auth/LoginPage'
-import { SalesDashboardPage } from '@/features/sales/SalesDashboardPage'
-import { UsersPage } from '@/features/users/UsersPage'
+import { OverviewView } from '@/features/overview/OverviewView'
+import { RequestsView } from '@/features/requests/RequestsView'
+import { RequestDetailView } from '@/features/requests/RequestDetailView'
+import { StaffView } from '@/features/staff/StaffView'
+import { MapView } from '@/features/map/MapView'
+import { SettingsView } from '@/features/settings/SettingsView'
+import { PatientsView } from '@/features/patients/PatientsView'
+import { PatientDetailView } from '@/features/patients/PatientDetailView'
+import { VisitsView } from '@/features/visits/VisitsView'
+import { BillingView } from '@/features/billing/BillingView'
+import { AuditLogsView } from '@/features/audit-logs/AuditLogsView'
 import { ProtectedRoute } from './ProtectedRoute'
 import { ErrorBoundary } from '@/core/components'
 import { NotFoundPage } from '@/core/components'
 
-function Placeholder({ title }: { title: string }) {
-  return (
-    <div className="flex h-64 flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-zinc-200 dark:border-zinc-800">
-      <p className="text-sm font-medium text-zinc-400 dark:text-zinc-500">{title}</p>
-      <p className="text-xs text-zinc-300 dark:text-zinc-600">Feature coming soon</p>
-    </div>
-  )
-}
-
 const protectedRoutes: RouteObject[] = [
   {
     path: '/',
-    element: <Placeholder title="Home" />,
+    element: <Navigate to="/overview" replace />,
   },
   {
-    path: '/analytics',
-    element: <Placeholder title="Analytics" />,
-  },
-  {
-    path: '/sales',
+    path: '/overview',
     element: (
       <ErrorBoundary>
-        <SalesDashboardPage />
+        <OverviewView />
       </ErrorBoundary>
     ),
   },
   {
-    path: '/users',
+    path: '/requests',
     element: (
       <ErrorBoundary>
-        <UsersPage />
+        <RequestsView />
+      </ErrorBoundary>
+    ),
+  },
+  {
+    path: '/requests/:id',
+    element: (
+      <ErrorBoundary>
+        <RequestDetailView />
+      </ErrorBoundary>
+    ),
+  },
+  {
+    path: '/staff',
+    element: (
+      <ErrorBoundary>
+        <StaffView />
+      </ErrorBoundary>
+    ),
+  },
+  {
+    path: '/map',
+    element: <MapView />,
+  },
+  {
+    path: '/patients',
+    element: (
+      <ErrorBoundary>
+        <PatientsView />
+      </ErrorBoundary>
+    ),
+  },
+  {
+    path: '/patients/:id',
+    element: (
+      <ErrorBoundary>
+        <PatientDetailView />
+      </ErrorBoundary>
+    ),
+  },
+  {
+    path: '/visits',
+    element: (
+      <ErrorBoundary>
+        <VisitsView />
+      </ErrorBoundary>
+    ),
+  },
+  {
+    path: '/billing',
+    element: (
+      <ErrorBoundary>
+        <BillingView />
+      </ErrorBoundary>
+    ),
+  },
+  {
+    path: '/audit-logs',
+    element: (
+      <ErrorBoundary>
+        <AuditLogsView />
       </ErrorBoundary>
     ),
   },
   {
     path: '/settings',
-    element: <Placeholder title="Settings" />,
+    element: <SettingsView />,
   },
   {
     path: '*',
@@ -56,8 +113,12 @@ const protectedRoutes: RouteObject[] = [
 
 export const router = createBrowserRouter([
   {
-    path: '/auth/login',
+    path: '/login',
     element: <LoginPage />,
+  },
+  {
+    path: '/auth/login',
+    element: <Navigate to="/login" replace />,
   },
   {
     element: (

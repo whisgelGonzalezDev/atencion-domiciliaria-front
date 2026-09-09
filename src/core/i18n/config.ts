@@ -1,42 +1,22 @@
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
-import LanguageDetector from 'i18next-browser-languagedetector'
 
-import en from './locales/en'
 import es from './locales/es'
-import fr from './locales/fr'
-import pt from './locales/pt'
 
-export const SUPPORTED_LANGUAGES = [
-  { code: 'en', label: 'English', flag: '🇺🇸' },
-  { code: 'es', label: 'Español', flag: '🇪🇸' },
-  { code: 'fr', label: 'Français', flag: '🇫🇷' },
-  { code: 'pt', label: 'Português', flag: '🇧🇷' },
-] as const
+// El sistema opera en español (mercado Venezuela). Se mantiene i18next como
+// capa de textos para centralizar los literales, pero con un único idioma.
+export type TranslationSchema = typeof es
 
-export type SupportedLocale = (typeof SUPPORTED_LANGUAGES)[number]['code']
-
-export type TranslationSchema = typeof en
-
-i18n
-  .use(LanguageDetector)
-  .use(initReactI18next)
-  .init({
-    resources: {
-      en: { translation: en },
-      es: { translation: es },
-      fr: { translation: fr },
-      pt: { translation: pt },
-    },
-    fallbackLng: 'en',
-    supportedLngs: ['en', 'es', 'fr', 'pt'],
-    interpolation: {
-      escapeValue: false,
-    },
-    detection: {
-      order: ['localStorage', 'navigator'],
-      caches: ['localStorage'],
-    },
-  })
+i18n.use(initReactI18next).init({
+  resources: {
+    es: { translation: es },
+  },
+  lng: 'es',
+  fallbackLng: 'es',
+  supportedLngs: ['es'],
+  interpolation: {
+    escapeValue: false,
+  },
+})
 
 export default i18n

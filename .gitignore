@@ -15,9 +15,13 @@ package-lock.json
 # Build output
 dist/
 dist-ssr/
+dev-dist/
 
 # Vite cache
 .vite/
+
+# CodeGraph local index
+.codegraph/
 
 # TypeScript
 *.tsbuildinfo

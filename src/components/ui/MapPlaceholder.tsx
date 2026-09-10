@@ -12,6 +12,18 @@ const MARKER_COLOR: Record<string, string> = {
   done:      '#10b981',
 }
 
+// Área metropolitana de Caracas (mismo rango que las zonas sembradas) —
+// proyecta lat/lng reales al espacio abstracto 0–100 de esta grilla
+// decorativa, sin necesidad de cargar Leaflet en este widget pequeño.
+const LAT_RANGE: [number, number] = [10.44, 10.545]
+const LNG_RANGE: [number, number] = [-66.98, -66.82]
+
+function project(lat: number, lng: number): { x: number; y: number } {
+  const x = ((lng - LNG_RANGE[0]) / (LNG_RANGE[1] - LNG_RANGE[0])) * 84 + 8
+  const y = ((LAT_RANGE[1] - lat) / (LAT_RANGE[1] - LAT_RANGE[0])) * 78 + 10
+  return { x: Math.min(96, Math.max(2, x)), y: Math.min(98, Math.max(4, y)) }
+}
+
 export function MapPlaceholder({ markers }: MapPlaceholderProps) {
   return (
     <div className="relative w-full h-full min-h-[320px] map-grid rounded-lg overflow-hidden bg-zinc-50 dark:bg-zinc-900">
@@ -42,12 +54,13 @@ export function MapPlaceholder({ markers }: MapPlaceholderProps) {
         {markers.map(m => {
           const color = MARKER_COLOR[m.state] ?? '#6b7280'
           const isEmergency = m.priority === 'emergency'
+          const { x, y } = project(m.lat, m.lng)
           return (
             <g key={m.id}>
               {isEmergency && (
-                <circle cx={m.x} cy={m.y} r="4" fill={color} opacity="0.3" className="animate-pulse-ring" />
+                <circle cx={x} cy={y} r="4" fill={color} opacity="0.3" className="animate-pulse-ring" />
               )}
-              <circle cx={m.x} cy={m.y} r="2.2" fill={color} stroke="white" strokeWidth="0.8" />
+              <circle cx={x} cy={y} r="2.2" fill={color} stroke="white" strokeWidth="0.8" />
             </g>
           )
         })}

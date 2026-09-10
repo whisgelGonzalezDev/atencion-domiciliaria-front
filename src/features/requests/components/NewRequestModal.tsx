@@ -5,7 +5,6 @@ import { type PriorityId } from '@/data/medData'
 import { requestsApi } from '@/core/api/requests.api'
 import { zonesApi } from '@/core/api/zones.api'
 import type { Zone } from '@/core/api/types'
-import { useAuth } from '@/features/auth/hooks/useAuth'
 import { toast } from 'sonner'
 
 interface NewRequestModalProps {
@@ -26,7 +25,6 @@ interface FormErrors {
 }
 
 export function NewRequestModal({ open, onClose, onCreated }: NewRequestModalProps) {
-  const { user } = useAuth()
   const [zones, setZones] = useState<Zone[]>([])
 
   const [name, setName] = useState('')

@@ -59,7 +59,11 @@ const protectedRoutes: RouteObject[] = [
   },
   {
     path: '/map',
-    element: <MapView />,
+    element: (
+      <ErrorBoundary>
+        <MapView />
+      </ErrorBoundary>
+    ),
   },
   {
     path: '/patients',

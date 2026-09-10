@@ -4,6 +4,7 @@ import { ThemeProvider } from '@/core/providers/ThemeProvider'
 import { AuthProvider } from '@/features/auth/hooks/useAuth'
 import { router } from '@/routes'
 import '@/core/tour/tour.css'
+import 'leaflet/dist/leaflet.css'
 
 const queryClient = new QueryClient({
   defaultOptions: {

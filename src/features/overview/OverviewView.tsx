@@ -4,7 +4,6 @@ import { List, Heart, Stethoscope, Clock, TrendingUp, TrendingDown, AlertTriangl
 import { dashboardApi } from '@/core/api/dashboard.api'
 import type { KpiData, MapMarker, MedRequest } from '@/core/api/types'
 import { MapPlaceholder } from '@/components/ui/MapPlaceholder'
-import { StateBadge } from '@/components/ui/StateBadge'
 import { PriorityPill } from '@/components/ui/PriorityPill'
 import { Card } from '@/core/components/Card'
 

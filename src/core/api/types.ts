@@ -65,8 +65,8 @@ export interface KpiData {
 
 export interface MapMarker {
   id: string
-  x: number
-  y: number
+  lat: number
+  lng: number
   priority: string
   state: string
   zone: string
@@ -75,6 +75,9 @@ export interface MapMarker {
 export interface Zone {
   id: string
   name: string
+  lat: number
+  lng: number
+  radiusKm: number
 }
 
 export interface PaginatedResult<T> {

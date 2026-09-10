@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Search, UserPlus, Star } from 'lucide-react'
 import { doctorsApi } from '@/core/api/doctors.api'
 import type { Doctor } from '@/core/api/types'
@@ -64,11 +64,14 @@ export function StaffView() {
   const [addOpen, setAddOpen] = useState(false)
   const [assignDoc, setAssignDoc] = useState<Doctor | null>(null)
 
-  useEffect(() => {
+  const load = useCallback(() => {
+    setLoading(true)
     doctorsApi.getAll()
       .then(setDoctors)
       .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => { load() }, [load])
 
   const filtered = doctors.filter(d => {
     if (filter !== 'all' && d.status !== filter) return false
@@ -165,7 +168,7 @@ export function StaffView() {
         open={!!assignDoc}
         doctor={assignDoc}
         onClose={() => setAssignDoc(null)}
-        onAssigned={() => setAssignDoc(null)}
+        onAssigned={() => { setAssignDoc(null); load() }}
       />
     </div>
   )

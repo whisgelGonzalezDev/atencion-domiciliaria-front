@@ -13,6 +13,12 @@ const WAITING_POLL_INTERVAL_MS = 30 * 1000 // 30s — notices an install that al
  * someone clears the cache by hand. This hook polls for updates and offers
  * a reload as soon as one is found, instead of waiting for the browser's
  * own next-navigation check.
+ *
+ * Polls `navigator.serviceWorker.getRegistration()` directly in its own
+ * effect rather than relying solely on useRegisterSW's onRegisteredSW/
+ * "waiting" event — verified live that a genuinely-waiting worker
+ * (registration.waiting stably true, state "installed") did not
+ * reliably flip needRefresh through the event-based path alone.
  */
 export function useAppUpdate() {
   const {
@@ -20,29 +26,33 @@ export function useAppUpdate() {
     updateServiceWorker,
   } = useRegisterSW({
     immediate: true,
-    onRegisteredSW(_swUrl, registration) {
-      if (!registration) return
-
-      // Belt-and-suspenders: workbox-window's own "waiting" event is
-      // supposed to fire the moment a new worker finishes installing, but
-      // it can race with the browser's async update check and never fire
-      // (observed directly: registration.waiting was true, needRefresh
-      // stayed false). Poll the registration itself instead of trusting
-      // the event alone — cheap, and guaranteed to eventually notice.
-      const checkForWaitingWorker = () => {
-        if (registration.waiting) setNeedRefresh(true)
-      }
-      checkForWaitingWorker()
-      setInterval(checkForWaitingWorker, WAITING_POLL_INTERVAL_MS)
-
-      setInterval(() => {
-        registration.update().catch(() => {})
-      }, UPDATE_CHECK_INTERVAL_MS)
-    },
     onRegisterError(error) {
       console.error('No se pudo registrar el service worker', error)
     },
   })
+
+  useEffect(() => {
+    if (!('serviceWorker' in navigator)) return
+
+    const checkForWaitingWorker = () => {
+      navigator.serviceWorker.getRegistration().then(registration => {
+        if (registration?.waiting) setNeedRefresh(true)
+      }).catch(() => {})
+    }
+
+    checkForWaitingWorker()
+    const pollId = setInterval(checkForWaitingWorker, WAITING_POLL_INTERVAL_MS)
+    const updateId = setInterval(() => {
+      navigator.serviceWorker.getRegistration()
+        .then(registration => registration?.update())
+        .catch(() => {})
+    }, UPDATE_CHECK_INTERVAL_MS)
+
+    return () => {
+      clearInterval(pollId)
+      clearInterval(updateId)
+    }
+  }, [setNeedRefresh])
 
   useEffect(() => {
     if (!needRefresh) return

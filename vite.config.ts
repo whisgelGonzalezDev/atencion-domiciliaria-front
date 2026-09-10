@@ -19,7 +19,14 @@ export default defineConfig(({ mode }) => {
       react(),
       VitePWA({
         registerType: 'autoUpdate',
-        injectRegister: 'auto',
+        // Registered manually via virtual:pwa-register/react (useAppUpdate)
+        // instead of the auto-injected script. injectRegister:'auto' only
+        // calls navigator.serviceWorker.register() — it never tells an
+        // already-open tab that a new version installed, so the page keeps
+        // running the old bundle (sometimes referencing code that no longer
+        // exists) until someone clears the cache by hand. useAppUpdate polls
+        // for updates and offers a reload as soon as one is found.
+        injectRegister: false,
         // devOptions.enabled registers the service worker in `npm run dev` too.
         // vite-plugin-pwa marks this "experimental", and in practice the dev SW
         // (workbox generateSW + a cross-origin NetworkFirst route) starts

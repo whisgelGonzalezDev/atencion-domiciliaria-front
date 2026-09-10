@@ -2,7 +2,8 @@ import { useEffect } from 'react'
 import { useRegisterSW } from 'virtual:pwa-register/react'
 import { toast } from 'sonner'
 
-const UPDATE_CHECK_INTERVAL_MS = 60 * 60 * 1000 // 1h
+const UPDATE_CHECK_INTERVAL_MS = 60 * 60 * 1000 // 1h — looks for a new deploy
+const WAITING_POLL_INTERVAL_MS = 30 * 1000 // 30s — notices an install that already finished
 
 /**
  * `registerType: 'autoUpdate'` (vite.config.ts) only makes the service
@@ -15,12 +16,25 @@ const UPDATE_CHECK_INTERVAL_MS = 60 * 60 * 1000 // 1h
  */
 export function useAppUpdate() {
   const {
-    needRefresh: [needRefresh],
+    needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
   } = useRegisterSW({
     immediate: true,
     onRegisteredSW(_swUrl, registration) {
       if (!registration) return
+
+      // Belt-and-suspenders: workbox-window's own "waiting" event is
+      // supposed to fire the moment a new worker finishes installing, but
+      // it can race with the browser's async update check and never fire
+      // (observed directly: registration.waiting was true, needRefresh
+      // stayed false). Poll the registration itself instead of trusting
+      // the event alone — cheap, and guaranteed to eventually notice.
+      const checkForWaitingWorker = () => {
+        if (registration.waiting) setNeedRefresh(true)
+      }
+      checkForWaitingWorker()
+      setInterval(checkForWaitingWorker, WAITING_POLL_INTERVAL_MS)
+
       setInterval(() => {
         registration.update().catch(() => {})
       }, UPDATE_CHECK_INTERVAL_MS)

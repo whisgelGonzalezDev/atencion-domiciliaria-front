@@ -118,10 +118,6 @@ export const router = createBrowserRouter(
       element: <LoginPage />,
     },
     {
-      path: '/auth/login',
-      element: <Navigate to="/login" replace />,
-    },
-    {
       element: (
         <ProtectedRoute>
           <DashboardLayout />

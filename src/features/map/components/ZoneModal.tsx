@@ -80,7 +80,10 @@ export function ZoneModal({ open, zone, defaultCenter, onClose, onSaved }: ZoneM
   const mapCenter = position ?? defaultCenter
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    // z-[1100]: Leaflet's own panes/controls go up to z-index 1000 (see
+    // leaflet.css), and this modal sits on the same page as MapView's live
+    // map, so the usual z-50 other modals use would render behind it.
+    <div className="fixed inset-0 z-[1100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
       <div className="relative w-full max-w-lg flex flex-col rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-lg overflow-hidden animate-fade-in">
         <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 px-5 py-4 shrink-0">

@@ -1,0 +1,99 @@
+@import 'driver.js/dist/driver.css';
+
+/* Recolorea el popover de driver.js con la paleta zinc/--accent del proyecto
+   en lugar de su tema por defecto (blanco puro / azul genérico). */
+
+.atencion-tour-popover.driver-popover {
+  background: #fff;
+  color: #18181b; /* zinc-900 */
+  border: 1px solid #e4e4e7; /* zinc-200 */
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  font-family: inherit;
+}
+
+.dark .atencion-tour-popover.driver-popover {
+  background: #18181b; /* zinc-900 */
+  color: #fafafa;
+  border-color: #27272a; /* zinc-800 */
+}
+
+.atencion-tour-popover .driver-popover-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: inherit;
+}
+
+.atencion-tour-popover .driver-popover-description {
+  font-size: 0.8125rem;
+  color: #52525b; /* zinc-600 */
+}
+
+.dark .atencion-tour-popover .driver-popover-description {
+  color: #d4d4d8; /* zinc-300 */
+}
+
+.atencion-tour-popover .driver-popover-progress-text {
+  color: #a1a1aa; /* zinc-400 */
+  font-size: 0.75rem;
+}
+
+.atencion-tour-popover .driver-popover-footer button {
+  background: var(--accent);
+  color: #fff;
+  text-shadow: none;
+  border: none;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  padding: 0.375rem 0.75rem;
+}
+
+.atencion-tour-popover .driver-popover-footer button:hover {
+  background: var(--accent-strong);
+}
+
+.atencion-tour-popover .driver-popover-footer .driver-popover-prev-btn {
+  background: transparent;
+  color: #52525b;
+  border: 1px solid #e4e4e7;
+}
+
+.dark .atencion-tour-popover .driver-popover-footer .driver-popover-prev-btn {
+  color: #d4d4d8;
+  border-color: #3f3f46;
+}
+
+.atencion-tour-popover .driver-popover-close-btn {
+  color: #a1a1aa;
+}
+
+/* driver.css builds the pointer triangle by setting all 4 border colors on
+   .driver-popover-arrow, then zeroing out 3 of them per side (side-left/
+   right/top/bottom keep one visible edge). A blanket override here would
+   fight that cascade and turn the triangle into a solid square, so each
+   side is replicated explicitly with the popover's own background color
+   instead of driver.js's white default. */
+.atencion-tour-popover .driver-popover-arrow-side-left {
+  border-left-color: #fff;
+}
+.atencion-tour-popover .driver-popover-arrow-side-right {
+  border-right-color: #fff;
+}
+.atencion-tour-popover .driver-popover-arrow-side-top {
+  border-top-color: #fff;
+}
+.atencion-tour-popover .driver-popover-arrow-side-bottom {
+  border-bottom-color: #fff;
+}
+.dark .atencion-tour-popover .driver-popover-arrow-side-left {
+  border-left-color: #18181b;
+}
+.dark .atencion-tour-popover .driver-popover-arrow-side-right {
+  border-right-color: #18181b;
+}
+.dark .atencion-tour-popover .driver-popover-arrow-side-top {
+  border-top-color: #18181b;
+}
+.dark .atencion-tour-popover .driver-popover-arrow-side-bottom {
+  border-bottom-color: #18181b;
+}

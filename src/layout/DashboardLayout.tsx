@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
   Heart, Home, List, Stethoscope, Map, Settings,
@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { useTheme } from '@/core/providers/ThemeProvider'
+import { useProductTour } from '@/core/tour/useProductTour'
 import { NewRequestModal } from '@/features/requests/components/NewRequestModal'
 import { OfflineBanner } from '@/core/components/OfflineBanner'
 
@@ -40,6 +41,7 @@ export function DashboardLayout() {
   const { user, logout } = useAuth()
   const isAdmin = user?.role === 'admin'
   const { isDark, toggle: toggleTheme } = useTheme()
+  const { startTour } = useProductTour()
   const navigate = useNavigate()
   const [collapsed, setCollapsed] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
@@ -48,6 +50,16 @@ export function DashboardLayout() {
     logout()
     navigate('/login')
   }
+
+  // Auto-arranca el recorrido guiado la primera vez que el usuario entra al
+  // dashboard. El timeout deja que el sidebar/header ya estén pintados antes
+  // de que driver.js busque los elementos `data-tour`.
+  useEffect(() => {
+    if (!user || user.hasCompletedTour) return
+    const timer = setTimeout(() => startTour(), 400)
+    return () => clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id])
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-zinc-50 dark:bg-zinc-950">
@@ -88,6 +100,7 @@ export function DashboardLayout() {
             <NavLink
               key={to}
               to={to}
+              data-tour={`nav-${to.slice(1)}`}
               className={({ isActive }) => [BASE, isActive ? ACTIVE : INACTIVE].join(' ')}
               title={collapsed ? label : undefined}
             >
@@ -113,6 +126,7 @@ export function DashboardLayout() {
             <NavLink
               key={to}
               to={to}
+              data-tour={`nav-${to.slice(1)}`}
               className={({ isActive }) => [BASE, isActive ? ACTIVE : INACTIVE].join(' ')}
               title={collapsed ? label : undefined}
             >
@@ -128,6 +142,7 @@ export function DashboardLayout() {
           )}
           <NavLink
             to="/settings"
+            data-tour="nav-settings"
             className={({ isActive }) => [BASE, isActive ? ACTIVE : INACTIVE].join(' ')}
             title={collapsed ? 'Configuración' : undefined}
           >
@@ -165,6 +180,7 @@ export function DashboardLayout() {
             {isAdmin && (
               <button
                 onClick={() => setModalOpen(true)}
+                data-tour="new-request-btn"
                 className="hidden sm:inline-flex items-center gap-1.5 rounded px-3 h-8 text-xs font-medium text-white transition-colors"
                 style={{ backgroundColor: 'var(--accent)' }}
                 onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--accent-strong)')}

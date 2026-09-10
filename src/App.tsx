@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider } from '@/core/providers/ThemeProvider'
 import { AuthProvider } from '@/features/auth/hooks/useAuth'
 import { router } from '@/routes'
+import '@/core/tour/tour.css'
 
 const queryClient = new QueryClient({
   defaultOptions: {

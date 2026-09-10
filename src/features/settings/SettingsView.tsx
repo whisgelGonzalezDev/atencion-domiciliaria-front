@@ -1,9 +1,12 @@
+import { Compass } from 'lucide-react'
 import { useTweaks, ACCENT_PRESETS } from '@/hooks/useTweaks'
 import { useTheme } from '@/core/providers/ThemeProvider'
+import { useProductTour } from '@/core/tour/useProductTour'
 
 export function SettingsView() {
   const { tweaks, update } = useTweaks()
   const { isDark, toggle } = useTheme()
+  const { startTour } = useProductTour()
 
   return (
     <div className="space-y-6 max-w-xl">
@@ -57,6 +60,22 @@ export function SettingsView() {
             className={['relative h-6 w-11 rounded-full transition-colors', isDark ? 'bg-[var(--accent)]' : 'bg-zinc-200 dark:bg-zinc-700'].join(' ')}
           >
             <span className={['absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform', isDark ? 'translate-x-5' : 'translate-x-0'].join(' ')} />
+          </button>
+        </div>
+      </section>
+
+      {/* Ayuda */}
+      <section className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-card">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold text-zinc-900 dark:text-white">Ayuda</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Repite el recorrido guiado por las secciones del sistema</p>
+          </div>
+          <button
+            onClick={startTour}
+            className="inline-flex items-center gap-1.5 h-8 px-3 rounded border border-zinc-200 dark:border-zinc-700 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors shrink-0"
+          >
+            <Compass size={13} /> Ver tour de nuevo
           </button>
         </div>
       </section>

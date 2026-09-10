@@ -6,6 +6,7 @@ export interface AuthUser {
   name: string
   email: string
   role: string
+  hasCompletedTour: boolean
 }
 
 interface AuthContextValue {
@@ -14,6 +15,7 @@ interface AuthContextValue {
   isLoading: boolean
   login: (email: string, password: string) => Promise<void>
   logout: () => void
+  markTourCompleted: () => void
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -52,8 +54,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null)
   }
 
+  // Fire-and-forget: the tour already closed visually either way, this just
+  // persists the "don't auto-show again" flag. If it fails, worst case the
+  // tour reappears next session and the user dismisses it again.
+  const markTourCompleted = () => {
+    setUser(prev => {
+      if (!prev || prev.hasCompletedTour) return prev
+      const next = { ...prev, hasCompletedTour: true }
+      localStorage.setItem('auth_user', JSON.stringify(next))
+      return next
+    })
+    apiClient('/auth/me/complete-tour', { method: 'PATCH' }).catch(() => {})
+  }
+
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, login, logout, markTourCompleted }}>
       {children}
     </AuthContext.Provider>
   )

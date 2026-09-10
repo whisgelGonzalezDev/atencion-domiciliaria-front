@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { createPortal } from 'react-dom'
 import { MapContainer, TileLayer, Circle, CircleMarker, useMapEvents } from 'react-leaflet'
-import { X } from 'lucide-react'
+import { X, Trash2 } from 'lucide-react'
 import { zonesApi } from '@/core/api/zones.api'
 import type { Zone } from '@/core/api/types'
 import { toast } from 'sonner'
@@ -12,6 +12,7 @@ interface ZoneModalProps {
   defaultCenter: [number, number]
   onClose: () => void
   onSaved: (zone: Zone) => void
+  onDeleted: (id: string) => void
 }
 
 function ClickToPlace({ onClick }: { onClick: (lat: number, lng: number) => void }) {
@@ -26,7 +27,7 @@ interface FormErrors {
   position?: string
 }
 
-export function ZoneModal({ open, zone, defaultCenter, onClose, onSaved }: ZoneModalProps) {
+export function ZoneModal({ open, zone, defaultCenter, onClose, onSaved, onDeleted }: ZoneModalProps) {
   const isEdit = !!zone
 
   const [name, setName] = useState('')
@@ -34,6 +35,7 @@ export function ZoneModal({ open, zone, defaultCenter, onClose, onSaved }: ZoneM
   const [radiusKm, setRadiusKm] = useState(2)
   const [errors, setErrors] = useState<FormErrors>({})
   const [loading, setLoading] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     if (!open) return
@@ -72,6 +74,23 @@ export function ZoneModal({ open, zone, defaultCenter, onClose, onSaved }: ZoneM
       toast.error(msg)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!zone || deleting) return
+    if (!window.confirm(`¿Eliminar la zona "${zone.name}"? Esta acción no se puede deshacer.`)) return
+    setDeleting(true)
+    try {
+      await zonesApi.delete(zone.id)
+      toast.success('Zona eliminada')
+      onDeleted(zone.id)
+      onClose()
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Error al eliminar la zona'
+      toast.error(msg)
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -136,18 +155,29 @@ export function ZoneModal({ open, zone, defaultCenter, onClose, onSaved }: ZoneM
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-2">
-            <button type="button" onClick={onClose} className="h-9 px-4 rounded border border-zinc-200 dark:border-zinc-700 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
-              Cancelar
-            </button>
-            <button
-              type="submit" disabled={loading}
-              className="h-9 px-5 rounded text-xs font-medium text-white flex items-center gap-2 disabled:opacity-60 transition-opacity"
-              style={{ backgroundColor: 'var(--accent)' }}
-            >
-              {loading && <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />}
-              {loading ? 'Guardando...' : isEdit ? 'Guardar cambios' : 'Crear zona'}
-            </button>
+          <div className="flex items-center justify-between gap-2 pt-2">
+            {isEdit ? (
+              <button
+                type="button" onClick={handleDelete} disabled={deleting || loading}
+                className="h-9 px-3 rounded text-xs font-medium text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900 hover:bg-rose-50 dark:hover:bg-rose-950 disabled:opacity-40 transition-colors flex items-center gap-1.5"
+              >
+                {deleting ? <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-rose-600 border-t-transparent" /> : <Trash2 size={13} />}
+                Eliminar
+              </button>
+            ) : <span />}
+            <div className="flex gap-2">
+              <button type="button" onClick={onClose} className="h-9 px-4 rounded border border-zinc-200 dark:border-zinc-700 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
+                Cancelar
+              </button>
+              <button
+                type="submit" disabled={loading || deleting}
+                className="h-9 px-5 rounded text-xs font-medium text-white flex items-center gap-2 disabled:opacity-60 transition-opacity"
+                style={{ backgroundColor: 'var(--accent)' }}
+              >
+                {loading && <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />}
+                {loading ? 'Guardando...' : isEdit ? 'Guardar cambios' : 'Crear zona'}
+              </button>
+            </div>
           </div>
         </form>
       </div>

@@ -16,4 +16,7 @@ export const zonesApi = {
 
   update: (id: string, body: Partial<CreateZoneBody>) =>
     apiClient<Zone>(`/zones/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
+
+  delete: (id: string) =>
+    apiClient<{ id: string }>(`/zones/${id}`, { method: 'DELETE' }),
 }

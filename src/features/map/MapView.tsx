@@ -47,6 +47,10 @@ export function MapView() {
     })
   }
 
+  const handleZoneDeleted = (id: string) => {
+    setZones(prev => prev.filter(z => z.id !== id))
+  }
+
   const defaultCenter: [number, number] = zones.length > 0
     ? [zones.reduce((s, z) => s + z.lat, 0) / zones.length, zones.reduce((s, z) => s + z.lng, 0) / zones.length]
     : CARACAS_CENTER
@@ -91,6 +95,7 @@ export function MapView() {
         defaultCenter={defaultCenter}
         onClose={() => setModalOpen(false)}
         onSaved={handleZoneSaved}
+        onDeleted={handleZoneDeleted}
       />
     </div>
   )

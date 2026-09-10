@@ -111,21 +111,26 @@ const protectedRoutes: RouteObject[] = [
   },
 ]
 
-export const router = createBrowserRouter([
-  {
-    path: '/login',
-    element: <LoginPage />,
-  },
-  {
-    path: '/auth/login',
-    element: <Navigate to="/login" replace />,
-  },
-  {
-    element: (
-      <ProtectedRoute>
-        <DashboardLayout />
-      </ProtectedRoute>
-    ),
-    children: protectedRoutes,
-  },
-])
+export const router = createBrowserRouter(
+  [
+    {
+      path: '/login',
+      element: <LoginPage />,
+    },
+    {
+      path: '/auth/login',
+      element: <Navigate to="/login" replace />,
+    },
+    {
+      element: (
+        <ProtectedRoute>
+          <DashboardLayout />
+        </ProtectedRoute>
+      ),
+      children: protectedRoutes,
+    },
+  ],
+  // Matches Vite's `base` — "/" in dev, "/atencion-domiciliaria-front/" when
+  // built for the GitHub Pages project page.
+  { basename: import.meta.env.BASE_URL },
+)

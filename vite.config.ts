@@ -9,7 +9,12 @@ export default defineConfig(({ mode }) => {
     ? new URL(env.VITE_API_BASE_URL).origin
     : 'http://localhost:3001'
 
+  // GitHub Pages serves this as a project page at /atencion-domiciliaria-front/,
+  // so asset URLs need that prefix in production. The dev server stays at "/".
+  const base = mode === 'production' ? '/atencion-domiciliaria-front/' : '/'
+
   return {
+    base,
     plugins: [
       react(),
       VitePWA({
@@ -31,14 +36,15 @@ export default defineConfig(({ mode }) => {
           short_name: 'Atención Dom.',
           description: 'Coordinación de atención médica domiciliaria en tiempo real.',
           lang: 'es',
-          start_url: '/overview',
+          start_url: `${base}overview`,
+          scope: base,
           display: 'standalone',
           theme_color: '#0369a1',
           background_color: '#f8fafc',
           icons: [
-            { src: '/pwa-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
-            { src: '/pwa-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-            { src: '/pwa-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+            { src: `${base}pwa-192.png`, sizes: '192x192', type: 'image/png', purpose: 'any' },
+            { src: `${base}pwa-512.png`, sizes: '512x512', type: 'image/png', purpose: 'any' },
+            { src: `${base}pwa-maskable-512.png`, sizes: '512x512', type: 'image/png', purpose: 'maskable' },
           ],
         },
         workbox: {

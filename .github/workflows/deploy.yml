@@ -1,0 +1,63 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one Pages deployment at a time; let in-flight runs finish instead of
+# cancelling them mid-deploy.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # No package-lock.json is committed (see .gitignore), so `npm ci` can't
+      # be used here — it requires a lockfile.
+      - run: npm install
+
+      - run: npx tsc --noEmit
+
+      - run: npm run build
+        env:
+          # Set this as a repository variable (Settings → Secrets and
+          # variables → Actions → Variables) once the backend has a public
+          # URL. Until then the deployed app builds fine but API calls will
+          # fail, since it has nothing to reach at the default localhost URL.
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+
+      # GitHub Pages has no server-side routing: a hard refresh on a deep
+      # link like /overview would 404. Pages falls back to 404.html for any
+      # unmatched path, so serving a copy of index.html there lets the SPA's
+      # client-side router take over and resolve the real path.
+      - run: cp dist/index.html dist/404.html
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/deploy-pages@v4
+        id: deployment

@@ -33,6 +33,7 @@ export function useAppUpdate() {
   useEffect(() => {
     if (!needRefresh) return
     toast('Hay una versión nueva disponible', {
+      description: 'Actualiza para ver los últimos cambios.',
       duration: Infinity,
       action: {
         label: 'Actualizar',

@@ -55,6 +55,15 @@ export default defineConfig(({ mode }) => {
           ],
         },
         workbox: {
+          // Without this, skipWaiting() (triggered by updateServiceWorker()
+          // in useAppUpdate.ts) activates the new worker but never claims
+          // the already-open tab — no controllerchange event fires, so the
+          // auto-reload after clicking "Actualizar" never happens. This
+          // does NOT make updates apply silently: skipWaiting is still
+          // message-driven (only sent on the user's click), clientsClaim
+          // just makes that click's effect actually take hold immediately
+          // instead of only affecting the *next* navigation.
+          clientsClaim: true,
           // App shell (JS/CSS/HTML) precached automatically by the plugin below.
           // Runtime caching only handles read (GET) API calls — mutations always
           // go through fetch directly so the offline queue in src/core/offline

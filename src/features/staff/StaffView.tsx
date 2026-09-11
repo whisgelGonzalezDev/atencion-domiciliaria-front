@@ -80,6 +80,8 @@ function DoctorCard({
 export function StaffView() {
   const { user } = useAuth()
   const isAdmin = user?.role === 'admin'
+  const isOperativo = user?.role === 'operativo'
+  const canManage = isAdmin || isOperativo
   const [doctors, setDoctors] = useState<Doctor[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<StatusFilter>('all')
@@ -188,7 +190,7 @@ export function StaffView() {
             <DoctorCard
               key={d.id}
               doc={d}
-              canManage={isAdmin}
+              canManage={canManage}
               statusUpdating={statusUpdatingId === d.id}
               onAssignRequest={setAssignDoc}
               onStatusChange={handleStatusChange}

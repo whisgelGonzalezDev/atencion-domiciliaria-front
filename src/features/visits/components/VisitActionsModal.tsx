@@ -23,7 +23,7 @@ function toLocalInputValue(iso: string): string {
 
 export function VisitActionsModal({ open, visit, onClose, onUpdated, onCancelledSeries }: VisitActionsModalProps) {
   const { user } = useAuth()
-  const isAdmin = user?.role === 'admin'
+  const canManage = user?.role === 'admin' || user?.role === 'operativo'
   const [doctors, setDoctors] = useState<Doctor[]>([])
   const [scheduledAt, setScheduledAt] = useState('')
   const [duration, setDuration] = useState('60')
@@ -137,8 +137,8 @@ export function VisitActionsModal({ open, visit, onClose, onUpdated, onCancelled
             <p className="text-sm text-zinc-400 italic">
               Esta visita está en estado <span className="font-medium capitalize">{visit.status}</span> y no admite más cambios.
             </p>
-          ) : !isAdmin ? (
-            <p className="text-sm text-zinc-400 italic">Solo un administrador puede modificar esta visita.</p>
+          ) : !canManage ? (
+            <p className="text-sm text-zinc-400 italic">No tienes permisos para modificar esta visita.</p>
           ) : (
             <>
               {/* Reprogramar */}

@@ -11,7 +11,7 @@ const CARACAS_CENTER: [number, number] = [10.4806, -66.9036]
 
 export function MapView() {
   const { user } = useAuth()
-  const isAdmin = user?.role === 'admin'
+  const canManage = user?.role === 'admin' || user?.role === 'operativo'
 
   const [markers, setMarkers] = useState<MapMarker[]>([])
   const [zones, setZones] = useState<Zone[]>([])
@@ -62,7 +62,7 @@ export function MapView() {
           <h1 className="text-xl font-semibold text-zinc-900 dark:text-white">Mapa de Zonas</h1>
           <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">Vista geográfica de las operaciones activas</p>
         </div>
-        {isAdmin && (
+        {canManage && (
           <button
             onClick={handleNewZone}
             className="inline-flex items-center gap-1.5 h-8 px-3 rounded text-xs font-medium text-white transition-colors"
@@ -85,7 +85,7 @@ export function MapView() {
             Error al cargar el mapa: {error}
           </div>
         ) : (
-          <LeafletMap zones={zones} markers={markers} isAdmin={isAdmin} onEditZone={handleEditZone} />
+          <LeafletMap zones={zones} markers={markers} canManage={canManage} onEditZone={handleEditZone} />
         )}
       </div>
 

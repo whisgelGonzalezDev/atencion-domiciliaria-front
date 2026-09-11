@@ -10,7 +10,7 @@ import { NewPatientModal } from './components/NewPatientModal'
 export function PatientsView() {
   const navigate = useNavigate()
   const { user } = useAuth()
-  const isAdmin = user?.role === 'admin'
+  const canManage = user?.role === 'admin' || user?.role === 'operativo'
   const [patients, setPatients] = useState<Patient[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
@@ -41,7 +41,7 @@ export function PatientsView() {
           <h1 className="text-xl font-semibold text-zinc-900 dark:text-white">Pacientes</h1>
           <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">{total} pacientes registrados</p>
         </div>
-        {isAdmin && (
+        {canManage && (
           <button
             onClick={() => setAddOpen(true)}
             className="inline-flex items-center gap-1.5 h-8 px-3 rounded text-xs font-medium text-white transition-colors"

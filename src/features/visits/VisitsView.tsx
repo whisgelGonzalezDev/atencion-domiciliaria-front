@@ -40,7 +40,7 @@ function startOfWeekIso(offsetDays = 0): string {
 
 export function VisitsView() {
   const { user } = useAuth()
-  const isAdmin = user?.role === 'admin'
+  const canManage = user?.role === 'admin' || user?.role === 'operativo'
   const [visits, setVisits] = useState<Visit[]>([])
   const [zones, setZones] = useState<Zone[]>([])
   const [doctors, setDoctors] = useState<Doctor[]>([])
@@ -92,7 +92,7 @@ export function VisitsView() {
           <h1 className="text-xl font-semibold text-zinc-900 dark:text-white">Agenda de visitas</h1>
           <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">{visits.length} visitas en el rango seleccionado</p>
         </div>
-        {isAdmin && (
+        {canManage && (
           <button
             onClick={() => setNewOpen(true)}
             className="inline-flex items-center gap-1.5 h-8 px-3 rounded text-xs font-medium text-white transition-colors"

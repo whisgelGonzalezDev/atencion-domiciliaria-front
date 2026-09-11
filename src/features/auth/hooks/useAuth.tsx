@@ -1,19 +1,26 @@
 import { useState, useEffect, createContext, useContext } from 'react'
 import { apiClient } from '@/core/utils/apiClient'
 
+export type Role = 'admin' | 'operativo' | 'doctor'
+
 export interface AuthUser {
   id: string
   name: string
   email: string
-  role: string
+  role: Role
   hasCompletedTour: boolean
+  doctorId?: string
+}
+
+export function getHomeRoute(role: Role): string {
+  return role === 'doctor' ? '/requests' : '/overview'
 }
 
 interface AuthContextValue {
   user: AuthUser | null
   isAuthenticated: boolean
   isLoading: boolean
-  login: (email: string, password: string) => Promise<void>
+  login: (email: string, password: string) => Promise<AuthUser>
   logout: () => void
   markTourCompleted: () => void
 }
@@ -46,6 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('auth_token', res.accessToken)
     localStorage.setItem('auth_user', JSON.stringify(res.user))
     setUser(res.user)
+    return res.user
   }
 
   const logout = () => {

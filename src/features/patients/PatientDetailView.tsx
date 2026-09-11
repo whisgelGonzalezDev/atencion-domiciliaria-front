@@ -21,7 +21,7 @@ export function PatientDetailView() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { user } = useAuth()
-  const isAdmin = user?.role === 'admin'
+  const canManage = user?.role === 'admin' || user?.role === 'operativo'
 
   const [patient, setPatient] = useState<Patient | null>(null)
   const [loading, setLoading] = useState(true)
@@ -118,7 +118,7 @@ export function PatientDetailView() {
       <Card padding="md">
         <div className="flex items-center justify-between mb-3">
           <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">Información del paciente</p>
-          {isAdmin && !editing && (
+          {canManage && !editing && (
             <button onClick={() => setEditing(true)} className="text-xs font-medium" style={{ color: 'var(--accent)' }}>
               Editar
             </button>

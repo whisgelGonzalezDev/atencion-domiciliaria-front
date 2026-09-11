@@ -87,6 +87,15 @@ export interface PaginatedResult<T> {
   limit: number
 }
 
+export interface UserAccount {
+  id: string
+  name: string
+  email: string
+  role: 'admin' | 'operativo' | 'doctor'
+  doctorId?: string
+  hasCompletedTour: boolean
+}
+
 export interface WhatsAppLink {
   phone: string
   message: string

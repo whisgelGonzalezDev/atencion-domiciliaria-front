@@ -1,6 +1,5 @@
 import {
   createBrowserRouter,
-  Navigate,
   type RouteObject,
 } from 'react-router-dom'
 import { DashboardLayout } from '@/layout/DashboardLayout'
@@ -16,21 +15,27 @@ import { PatientDetailView } from '@/features/patients/PatientDetailView'
 import { VisitsView } from '@/features/visits/VisitsView'
 import { BillingView } from '@/features/billing/BillingView'
 import { AuditLogsView } from '@/features/audit-logs/AuditLogsView'
+import { UsersView } from '@/features/users/UsersView'
 import { ProtectedRoute } from './ProtectedRoute'
+import { RoleHomeRedirect } from './RoleHomeRedirect'
 import { ErrorBoundary } from '@/core/components'
 import { NotFoundPage } from '@/core/components'
+
+const ADMIN_OPERATIVO = ['admin', 'operativo'] as const
 
 const protectedRoutes: RouteObject[] = [
   {
     path: '/',
-    element: <Navigate to="/overview" replace />,
+    element: <RoleHomeRedirect />,
   },
   {
     path: '/overview',
     element: (
-      <ErrorBoundary>
-        <OverviewView />
-      </ErrorBoundary>
+      <ProtectedRoute roles={[...ADMIN_OPERATIVO]}>
+        <ErrorBoundary>
+          <OverviewView />
+        </ErrorBoundary>
+      </ProtectedRoute>
     ),
   },
   {
@@ -52,57 +57,81 @@ const protectedRoutes: RouteObject[] = [
   {
     path: '/staff',
     element: (
-      <ErrorBoundary>
-        <StaffView />
-      </ErrorBoundary>
+      <ProtectedRoute roles={[...ADMIN_OPERATIVO]}>
+        <ErrorBoundary>
+          <StaffView />
+        </ErrorBoundary>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/map',
     element: (
-      <ErrorBoundary>
-        <MapView />
-      </ErrorBoundary>
+      <ProtectedRoute roles={[...ADMIN_OPERATIVO]}>
+        <ErrorBoundary>
+          <MapView />
+        </ErrorBoundary>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/patients',
     element: (
-      <ErrorBoundary>
-        <PatientsView />
-      </ErrorBoundary>
+      <ProtectedRoute roles={[...ADMIN_OPERATIVO]}>
+        <ErrorBoundary>
+          <PatientsView />
+        </ErrorBoundary>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/patients/:id',
     element: (
-      <ErrorBoundary>
-        <PatientDetailView />
-      </ErrorBoundary>
+      <ProtectedRoute roles={[...ADMIN_OPERATIVO]}>
+        <ErrorBoundary>
+          <PatientDetailView />
+        </ErrorBoundary>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/visits',
     element: (
-      <ErrorBoundary>
-        <VisitsView />
-      </ErrorBoundary>
+      <ProtectedRoute roles={[...ADMIN_OPERATIVO]}>
+        <ErrorBoundary>
+          <VisitsView />
+        </ErrorBoundary>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/billing',
     element: (
-      <ErrorBoundary>
-        <BillingView />
-      </ErrorBoundary>
+      <ProtectedRoute roles={['admin']}>
+        <ErrorBoundary>
+          <BillingView />
+        </ErrorBoundary>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/audit-logs',
     element: (
-      <ErrorBoundary>
-        <AuditLogsView />
-      </ErrorBoundary>
+      <ProtectedRoute roles={['admin']}>
+        <ErrorBoundary>
+          <AuditLogsView />
+        </ErrorBoundary>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/users',
+    element: (
+      <ProtectedRoute roles={['admin']}>
+        <ErrorBoundary>
+          <UsersView />
+        </ErrorBoundary>
+      </ProtectedRoute>
     ),
   },
   {

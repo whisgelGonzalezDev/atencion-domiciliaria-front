@@ -45,6 +45,9 @@ export function RequestDetailView() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const isAdmin = user?.role === 'admin'
+  const isOperativo = user?.role === 'operativo'
+  const isDoctor = user?.role === 'doctor'
+  const canManage = isAdmin || isOperativo
   const [req, setReq] = useState<MedRequest | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
@@ -171,6 +174,7 @@ export function RequestDetailView() {
     )
   }
 
+  const canAddNote = canManage || (isDoctor && req.doctor?.id === user?.doctorId)
   const currentStep = stateToStep(req.state)
   const isCancelled = req.state === 'cancelled'
   const isTerminal = req.state === 'done' || isCancelled
@@ -199,17 +203,19 @@ export function RequestDetailView() {
           </div>
           <div className="flex items-center gap-2">
             <p className="text-xs text-zinc-400">hace {req.minutesAgo}m · {req.zone.name}</p>
-            <button
-              disabled={sendingWhatsApp}
-              onClick={handleNotifyWhatsApp}
-              className="inline-flex items-center gap-1.5 h-8 px-3 rounded text-xs font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 border border-emerald-100 dark:border-emerald-900 disabled:opacity-40 transition-opacity"
-            >
-              {sendingWhatsApp
-                ? <span className="h-3 w-3 animate-spin rounded-full border-2 border-emerald-700 border-t-transparent" />
-                : <MessageCircle size={13} />}
-              WhatsApp
-            </button>
-            {isAdmin && !isTerminal && (
+            {canManage && (
+              <button
+                disabled={sendingWhatsApp}
+                onClick={handleNotifyWhatsApp}
+                className="inline-flex items-center gap-1.5 h-8 px-3 rounded text-xs font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 border border-emerald-100 dark:border-emerald-900 disabled:opacity-40 transition-opacity"
+              >
+                {sendingWhatsApp
+                  ? <span className="h-3 w-3 animate-spin rounded-full border-2 border-emerald-700 border-t-transparent" />
+                  : <MessageCircle size={13} />}
+                WhatsApp
+              </button>
+            )}
+            {canManage && !isTerminal && (
               <button
                 disabled={cancelling}
                 onClick={handleCancel}
@@ -221,7 +227,7 @@ export function RequestDetailView() {
                 Cancelar
               </button>
             )}
-            {isAdmin && !isTerminal && (
+            {canManage && !isTerminal && (
               <button
                 disabled={currentStep >= 3 || advancingState}
                 onClick={handleAdvanceState}
@@ -333,7 +339,7 @@ export function RequestDetailView() {
                 <p className="text-zinc-400 italic text-xs">Sin notas aún.</p>
               </div>
             )}
-            {isAdmin && (
+            {canAddNote && (
               <div className="flex gap-2">
                 <textarea
                   value={noteText} onChange={e => setNoteText(e.target.value)}
@@ -398,7 +404,7 @@ export function RequestDetailView() {
                 )
               })}
             </ol>
-            {isAdmin && !isTerminal && (
+            {canManage && !isTerminal && (
               <div className="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
                 <button
                   disabled={currentStep >= 3 || advancingState}
@@ -443,7 +449,7 @@ export function RequestDetailView() {
                     <p className="text-[10px] text-zinc-400">ETA</p>
                   </div>
                 </div>
-                {isAdmin && !isTerminal && (
+                {canManage && !isTerminal && (
                   <div className="flex gap-2">
                     <button
                       onClick={() => setAssignOpen(true)}
@@ -454,7 +460,7 @@ export function RequestDetailView() {
                   </div>
                 )}
               </div>
-            ) : isAdmin && !isTerminal ? (
+            ) : canManage && !isTerminal ? (
               <button
                 onClick={() => setAssignOpen(true)}
                 className="w-full h-14 rounded-lg border-2 border-dashed border-zinc-200 dark:border-zinc-700 text-xs font-medium text-zinc-400 hover:border-zinc-300 dark:hover:border-zinc-600 transition-colors flex items-center justify-center gap-1.5"

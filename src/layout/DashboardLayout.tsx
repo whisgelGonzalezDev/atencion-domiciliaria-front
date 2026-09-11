@@ -3,9 +3,9 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
   Heart, Home, List, Stethoscope, Map, Settings,
   LogOut, PanelLeft, X, Plus, Moon, Sun,
-  Users, CalendarClock, Receipt, ScrollText,
+  Users, CalendarClock, Receipt, ScrollText, UserCog,
 } from 'lucide-react'
-import { useAuth } from '@/features/auth/hooks/useAuth'
+import { useAuth, type Role } from '@/features/auth/hooks/useAuth'
 import { useTheme } from '@/core/providers/ThemeProvider'
 import { useProductTour } from '@/core/tour/useProductTour'
 import { NewRequestModal } from '@/features/requests/components/NewRequestModal'
@@ -16,21 +16,33 @@ interface NavItem {
   label: string
   icon: React.ElementType
   badge?: number
-  adminOnly?: boolean
+  roles?: Role[]
+}
+
+const ADMIN_OPERATIVO: Role[] = ['admin', 'operativo']
+
+const ROLE_LABEL: Record<Role, string> = {
+  admin: 'Administradora',
+  operativo: 'Operador/a',
+  doctor: 'Médico',
 }
 
 const OPERATIONS_NAV_ITEMS: NavItem[] = [
-  { to: '/overview', label: 'Resumen',        icon: Home },
+  { to: '/overview', label: 'Resumen',        icon: Home, roles: ADMIN_OPERATIVO },
   { to: '/requests', label: 'Solicitudes',     icon: List },
-  { to: '/staff',    label: 'Personal Médico', icon: Stethoscope },
-  { to: '/map',      label: 'Mapa de Zonas',   icon: Map },
+  { to: '/staff',    label: 'Personal Médico', icon: Stethoscope, roles: ADMIN_OPERATIVO },
+  { to: '/map',      label: 'Mapa de Zonas',   icon: Map, roles: ADMIN_OPERATIVO },
 ]
 
 const MANAGEMENT_NAV_ITEMS: NavItem[] = [
-  { to: '/patients',   label: 'Pacientes',    icon: Users },
-  { to: '/visits',     label: 'Visitas',      icon: CalendarClock },
-  { to: '/billing',    label: 'Facturación',  icon: Receipt },
-  { to: '/audit-logs', label: 'Auditoría',    icon: ScrollText, adminOnly: true },
+  { to: '/patients',   label: 'Pacientes',    icon: Users, roles: ADMIN_OPERATIVO },
+  { to: '/visits',     label: 'Visitas',      icon: CalendarClock, roles: ADMIN_OPERATIVO },
+]
+
+const ADMIN_NAV_ITEMS: NavItem[] = [
+  { to: '/billing',    label: 'Facturación', icon: Receipt,    roles: ['admin'] },
+  { to: '/audit-logs', label: 'Auditoría',   icon: ScrollText, roles: ['admin'] },
+  { to: '/users',      label: 'Usuarios',    icon: UserCog,    roles: ['admin'] },
 ]
 
 const BASE = 'group flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-100'
@@ -40,6 +52,11 @@ const INACTIVE = 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:b
 export function DashboardLayout() {
   const { user, logout } = useAuth()
   const isAdmin = user?.role === 'admin'
+  const isOperativo = user?.role === 'operativo'
+  const canManageOps = isAdmin || isOperativo
+  const hasRole = (roles?: Role[]) => !roles || (user ? roles.includes(user.role) : false)
+  const visibleManagementItems = MANAGEMENT_NAV_ITEMS.filter(item => hasRole(item.roles))
+  const visibleAdminItems = ADMIN_NAV_ITEMS.filter(item => hasRole(item.roles))
   const { isDark, toggle: toggleTheme } = useTheme()
   const { startTour } = useProductTour()
   const navigate = useNavigate()
@@ -96,7 +113,7 @@ export function DashboardLayout() {
               Operaciones
             </p>
           )}
-          {OPERATIONS_NAV_ITEMS.map(({ to, label, icon: Icon, badge }) => (
+          {OPERATIONS_NAV_ITEMS.filter(item => hasRole(item.roles)).map(({ to, label, icon: Icon, badge }) => (
             <NavLink
               key={to}
               to={to}
@@ -117,23 +134,49 @@ export function DashboardLayout() {
             </NavLink>
           ))}
 
-          {!collapsed && (
-            <p className="px-3 pt-4 pb-1 text-[10px] font-semibold uppercase tracking-widest text-zinc-400 dark:text-zinc-600">
-              Gestión
-            </p>
+          {visibleManagementItems.length > 0 && (
+            <>
+              {!collapsed && (
+                <p className="px-3 pt-4 pb-1 text-[10px] font-semibold uppercase tracking-widest text-zinc-400 dark:text-zinc-600">
+                  Gestión
+                </p>
+              )}
+              {visibleManagementItems.map(({ to, label, icon: Icon }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  data-tour={`nav-${to.slice(1)}`}
+                  className={({ isActive }) => [BASE, isActive ? ACTIVE : INACTIVE].join(' ')}
+                  title={collapsed ? label : undefined}
+                >
+                  <Icon size={16} className="shrink-0" />
+                  {!collapsed && <span className="flex-1 truncate">{label}</span>}
+                </NavLink>
+              ))}
+            </>
           )}
-          {MANAGEMENT_NAV_ITEMS.filter(item => !item.adminOnly || isAdmin).map(({ to, label, icon: Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              data-tour={`nav-${to.slice(1)}`}
-              className={({ isActive }) => [BASE, isActive ? ACTIVE : INACTIVE].join(' ')}
-              title={collapsed ? label : undefined}
-            >
-              <Icon size={16} className="shrink-0" />
-              {!collapsed && <span className="flex-1 truncate">{label}</span>}
-            </NavLink>
-          ))}
+
+          {visibleAdminItems.length > 0 && (
+            <>
+              {!collapsed && (
+                <p className="px-3 pt-4 pb-1 text-[10px] font-semibold uppercase tracking-widest text-zinc-400 dark:text-zinc-600">
+                  Administración
+                </p>
+              )}
+              {visibleAdminItems.map(({ to, label, icon: Icon }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  data-tour={`nav-${to.slice(1)}`}
+                  className={({ isActive }) => [BASE, isActive ? ACTIVE : INACTIVE].join(' ')}
+                  title={collapsed ? label : undefined}
+                >
+                  <Icon size={16} className="shrink-0" />
+                  {!collapsed && <span className="flex-1 truncate">{label}</span>}
+                </NavLink>
+              ))}
+            </>
+          )}
 
           {!collapsed && (
             <p className="px-3 pt-4 pb-1 text-[10px] font-semibold uppercase tracking-widest text-zinc-400 dark:text-zinc-600">
@@ -156,7 +199,7 @@ export function DashboardLayout() {
           {!collapsed && user && (
             <div className="px-3 py-2 mb-1">
               <p className="text-xs font-medium text-zinc-900 dark:text-white truncate">{user.name}</p>
-              <p className="text-xs text-zinc-400 dark:text-zinc-500 truncate">Coordinadora</p>
+              <p className="text-xs text-zinc-400 dark:text-zinc-500 truncate">{ROLE_LABEL[user.role]}</p>
             </div>
           )}
           <button
@@ -177,7 +220,7 @@ export function DashboardLayout() {
           <div className="min-w-0 flex-1" />
 
           <div className="flex items-center gap-2">
-            {isAdmin && (
+            {canManageOps && (
               <button
                 onClick={() => setModalOpen(true)}
                 data-tour="new-request-btn"

@@ -15,7 +15,7 @@ export function useProductTour() {
   const driverRef = useRef<Driver | null>(null)
 
   const startTour = useCallback(() => {
-    const isAdmin = user?.role === 'admin'
+    if (!user) return
 
     driverRef.current?.destroy()
     driverRef.current = driver({
@@ -27,11 +27,11 @@ export function useProductTour() {
       nextBtnText: 'Siguiente',
       prevBtnText: 'Atrás',
       doneBtnText: 'Listo',
-      steps: getTourSteps(isAdmin),
+      steps: getTourSteps(user.role),
       onDestroyed: () => markTourCompleted(),
     })
     driverRef.current.drive()
-  }, [user?.role, markTourCompleted])
+  }, [user, markTourCompleted])
 
   return { startTour }
 }

@@ -5,7 +5,7 @@ import type { Zone, MapMarker } from '@/core/api/types'
 interface LeafletMapProps {
   zones: Zone[]
   markers: MapMarker[]
-  isAdmin: boolean
+  canManage: boolean
   onEditZone: (zone: Zone) => void
 }
 
@@ -20,7 +20,7 @@ const MARKER_COLOR: Record<string, string> = {
 // Centro del área metropolitana de Caracas — fallback si aún no hay zonas.
 const CARACAS_CENTER: [number, number] = [10.4806, -66.9036]
 
-export function LeafletMap({ zones, markers, isAdmin, onEditZone }: LeafletMapProps) {
+export function LeafletMap({ zones, markers, canManage, onEditZone }: LeafletMapProps) {
   const navigate = useNavigate()
 
   const center: [number, number] = zones.length > 0
@@ -47,7 +47,7 @@ export function LeafletMap({ zones, markers, isAdmin, onEditZone }: LeafletMapPr
           <Popup>
             <p className="text-sm font-semibold text-zinc-900">{zone.name}</p>
             <p className="text-xs text-zinc-500">{zone.radiusKm} km de radio</p>
-            {isAdmin && (
+            {canManage && (
               <button
                 onClick={() => onEditZone(zone)}
                 className="mt-2 text-xs font-medium underline"

@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Heart, Moon, Sun, Eye, EyeOff } from 'lucide-react'
-import { useAuth } from './hooks/useAuth'
+import { useAuth, getHomeRoute } from './hooks/useAuth'
 import { useTheme } from '@/core/providers/ThemeProvider'
 
 export function LoginPage() {
@@ -17,7 +17,7 @@ export function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  const from = (location.state as { from?: string })?.from ?? '/overview'
+  const from = (location.state as { from?: string })?.from
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -28,8 +28,8 @@ export function LoginPage() {
     setError(null)
     setLoading(true)
     try {
-      await login(email, password)
-      navigate(from, { replace: true })
+      const loggedInUser = await login(email, password)
+      navigate(from ?? getHomeRoute(loggedInUser.role), { replace: true })
     } catch {
       setError('Credenciales inválidas')
     } finally {
@@ -119,9 +119,10 @@ export function LoginPage() {
               </button>
             </form>
 
-            <p className="mt-6 text-center text-xs text-zinc-400 dark:text-zinc-600">
-              Demo: admin@atencion.med / demo1234
-            </p>
+            <div className="mt-6 text-center text-xs text-zinc-400 dark:text-zinc-600 space-y-0.5">
+              <p>Demo (contraseña: demo1234):</p>
+              <p>admin@atencion.med · operador@atencion.med · medico@atencion.med</p>
+            </div>
           </div>
         </div>
 

@@ -7,6 +7,7 @@ import { DoctorStatusDot } from '@/components/ui/DoctorStatusDot'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { AddDoctorModal } from './components/AddDoctorModal'
 import { AssignRequestModal } from './components/AssignRequestModal'
+import { DoctorStatusSelect } from './components/DoctorStatusSelect'
 import { toast } from 'sonner'
 
 type StatusFilter = 'all' | 'available' | 'busy' | 'offshift'
@@ -55,16 +56,11 @@ function DoctorCard({
       </div>
       {canManage && (
         <div className="flex flex-col gap-2">
-          <select
+          <DoctorStatusSelect
             value={doc.status}
             disabled={statusUpdating}
-            onChange={e => onStatusChange(doc, e.target.value as Doctor['status'])}
-            className="w-full h-8 rounded border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs text-zinc-700 dark:text-zinc-300 px-2 disabled:opacity-40 focus:outline-none focus:ring-1 focus:ring-sky-200 dark:focus:ring-sky-900"
-          >
-            {(['available', 'busy', 'offshift'] as const).map(s => (
-              <option key={s} value={s}>{STATUS_LABEL[s]}</option>
-            ))}
-          </select>
+            onChange={status => onStatusChange(doc, status)}
+          />
           <button
             disabled={!canAssign}
             onClick={() => canAssign && onAssignRequest(doc)}

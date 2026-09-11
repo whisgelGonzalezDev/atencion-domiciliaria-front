@@ -140,6 +140,66 @@ export interface BillingCharge {
   updatedAt: string
 }
 
+export type StatsPeriod = 'day' | 'week' | 'month' | 'year'
+
+export interface SeriesPoint {
+  label: string
+  value: number
+}
+
+export interface CountByKey {
+  key: string
+  count: number
+}
+
+export interface RequestsStats {
+  totalRequests: number
+  deltaPct: number
+  byState: CountByKey[]
+  byPriority: CountByKey[]
+  byZone: CountByKey[]
+  series: SeriesPoint[]
+}
+
+export interface DoctorPerformance {
+  doctorId: string
+  doctorName: string
+  completedRequests: number
+  avgResponseMinutes: number
+}
+
+export interface PerformanceStats {
+  avgResponseMinutes: number
+  avgResponseDeltaPct: number
+  completionRate: number
+  completionRateDeltaPct: number
+  cancelledRate: number
+  byDoctor: DoctorPerformance[]
+  series: SeriesPoint[]
+}
+
+export interface IncomeByMethod {
+  method: string
+  totalUsd: number
+  count: number
+}
+
+export interface IncomeByStatus {
+  status: string
+  totalUsd: number
+  count: number
+}
+
+export interface IncomeStats {
+  totalUsd: number
+  totalBs: number
+  deltaPct: number
+  pendingUsd: number
+  byMethod: IncomeByMethod[]
+  byStatus: IncomeByStatus[]
+  series: SeriesPoint[]
+}
+
 export interface AuditLog {
   id: string
   actorId?: string

@@ -3,7 +3,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
   Heart, Home, List, Stethoscope, Map, Settings,
   LogOut, PanelLeft, X, Plus, Moon, Sun,
-  Users, CalendarClock, Receipt, ScrollText, UserCog, FileDown, BarChart3,
+  Users, CalendarClock, Receipt, ScrollText, UserCog, FileDown, BarChart3, ClipboardList,
 } from 'lucide-react'
 import { useAuth, type Role } from '@/features/auth/hooks/useAuth'
 import { useTheme } from '@/core/providers/ThemeProvider'
@@ -35,8 +35,9 @@ const OPERATIONS_NAV_ITEMS: NavItem[] = [
 ]
 
 const MANAGEMENT_NAV_ITEMS: NavItem[] = [
-  { to: '/patients',   label: 'Pacientes',    icon: Users, roles: ADMIN_OPERATIVO },
-  { to: '/visits',     label: 'Visitas',      icon: CalendarClock, roles: ADMIN_OPERATIVO },
+  { to: '/patients',        label: 'Pacientes',       icon: Users, roles: ADMIN_OPERATIVO },
+  { to: '/visits',          label: 'Visitas',         icon: CalendarClock, roles: ADMIN_OPERATIVO },
+  { to: '/medical-history', label: 'Historia Médica', icon: ClipboardList, roles: ['admin', 'doctor'] },
 ]
 
 const ADMIN_NAV_ITEMS: NavItem[] = [

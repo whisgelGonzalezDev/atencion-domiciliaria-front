@@ -211,3 +211,88 @@ export interface AuditLog {
   metadata?: Record<string, unknown>
   createdAt: string
 }
+
+// ── Historia médica ─────────────────────────────────────────────────────────
+export type HabitStatus = 'nunca' | 'actual' | 'anterior'
+
+export interface HabitDetail {
+  status: HabitStatus
+  detail?: string
+}
+
+export interface Habits {
+  smoking?: HabitDetail
+  alcohol?: HabitDetail
+  drugs?: HabitDetail
+  physicalActivity?: string
+  diet?: string
+  sleepHours?: number
+}
+
+export interface BaselineVitals {
+  bp?: string
+  hr?: number
+  rr?: number
+  temp?: string
+  spo2?: number
+  weightKg?: number
+  heightCm?: number
+}
+
+export interface SurgeryEntry { description: string; occurredAt?: string }
+export interface AllergyEntry { substance: string; reaction?: string; severity?: 'leve' | 'moderada' | 'severa' }
+export interface MedicationEntry { name: string; dose?: string; frequency?: string }
+export interface FamilyHistoryEntry { relative: string; condition: string }
+export interface DiagnosisEntry { description: string; diagnosedAt?: string }
+
+export const REVIEW_OF_SYSTEMS_KEYS = [
+  'cardiovascular', 'respiratorio', 'digestivo', 'genitourinario',
+  'neurologico', 'musculoesqueletico', 'piel_faneras', 'endocrino',
+] as const
+export type ReviewOfSystemsKey = typeof REVIEW_OF_SYSTEMS_KEYS[number]
+
+export interface MedicalHistoryFormData {
+  status: 'draft' | 'completed'
+  chronicConditions: string[]
+  surgeries: SurgeryEntry[]
+  allergies: AllergyEntry[]
+  currentMedications: MedicationEntry[]
+  familyHistory: FamilyHistoryEntry[]
+  habits: Habits
+  baselineVitals: BaselineVitals
+  physicalExamNotes: string
+  reviewOfSystems: Record<string, string>
+  activeDiagnoses: DiagnosisEntry[]
+  generalNotes: string
+}
+
+export interface MedicalHistory extends MedicalHistoryFormData {
+  id: string
+  patientId: string
+  patientName: string
+  lastEditedByName: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface MedicalHistoryPatientInfo {
+  id: string
+  name: string
+  age: number
+  phone: string
+}
+
+export interface MedicalHistoryDetail {
+  patient: MedicalHistoryPatientInfo
+  history: MedicalHistory | null
+}
+
+export interface MedicalHistoryPatientSummary {
+  patientId: string
+  patientName: string
+  patientAge: number
+  patientPhone: string
+  status: 'none' | 'draft' | 'completed'
+  updatedAt: string | null
+  allergyCount: number
+}

@@ -18,6 +18,8 @@ import { AuditLogsView } from '@/features/audit-logs/AuditLogsView'
 import { UsersView } from '@/features/users/UsersView'
 import { ReportsView } from '@/features/reports/ReportsView'
 import { StatisticsView } from '@/features/statistics/StatisticsView'
+import { MedicalHistoryListView } from '@/features/medical-history/MedicalHistoryListView'
+import { MedicalHistoryWizard } from '@/features/medical-history/MedicalHistoryWizard'
 import { ProtectedRoute } from './ProtectedRoute'
 import { RoleHomeRedirect } from './RoleHomeRedirect'
 import { ErrorBoundary } from '@/core/components'
@@ -152,6 +154,26 @@ const protectedRoutes: RouteObject[] = [
       <ProtectedRoute roles={['admin']}>
         <ErrorBoundary>
           <StatisticsView />
+        </ErrorBoundary>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/medical-history',
+    element: (
+      <ProtectedRoute roles={['admin', 'doctor']}>
+        <ErrorBoundary>
+          <MedicalHistoryListView />
+        </ErrorBoundary>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/medical-history/:patientId',
+    element: (
+      <ProtectedRoute roles={['admin', 'doctor']}>
+        <ErrorBoundary>
+          <MedicalHistoryWizard />
         </ErrorBoundary>
       </ProtectedRoute>
     ),

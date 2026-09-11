@@ -99,6 +99,14 @@ export function getTourSteps(role: Role): DriveStep[] {
         },
       },
       {
+        element: '[data-tour="nav-reports"]',
+        popover: {
+          title: 'Reportes',
+          description: 'Exporta Solicitudes, Facturación, Visitas y Auditoría a CSV, con filtros opcionales.',
+          side: 'right',
+        },
+      },
+      {
         element: '[data-tour="nav-users"]',
         popover: {
           title: 'Usuarios',

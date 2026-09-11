@@ -7,10 +7,25 @@ import { DoctorStatusDot } from '@/components/ui/DoctorStatusDot'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { AddDoctorModal } from './components/AddDoctorModal'
 import { AssignRequestModal } from './components/AssignRequestModal'
+import { toast } from 'sonner'
 
 type StatusFilter = 'all' | 'available' | 'busy' | 'offshift'
 
-function DoctorCard({ doc, canManage, onAssignRequest }: { doc: Doctor; canManage: boolean; onAssignRequest: (doc: Doctor) => void }) {
+const STATUS_LABEL: Record<Doctor['status'], string> = {
+  available: 'Disponible',
+  busy: 'En ruta',
+  offshift: 'Fuera de turno',
+}
+
+function DoctorCard({
+  doc, canManage, statusUpdating, onAssignRequest, onStatusChange,
+}: {
+  doc: Doctor
+  canManage: boolean
+  statusUpdating: boolean
+  onAssignRequest: (doc: Doctor) => void
+  onStatusChange: (doc: Doctor, status: Doctor['status']) => void
+}) {
   const canAssign = doc.status === 'available'
   return (
     <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-card flex flex-col gap-3">
@@ -39,16 +54,28 @@ function DoctorCard({ doc, canManage, onAssignRequest }: { doc: Doctor; canManag
         </div>
       </div>
       {canManage && (
-        <button
-          disabled={!canAssign}
-          onClick={() => canAssign && onAssignRequest(doc)}
-          className="w-full h-8 rounded text-xs font-medium text-white disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
-          style={{ backgroundColor: canAssign ? 'var(--accent)' : undefined }}
-          onMouseEnter={e => canAssign && (e.currentTarget.style.backgroundColor = 'var(--accent-strong)')}
-          onMouseLeave={e => canAssign && (e.currentTarget.style.backgroundColor = 'var(--accent)')}
-        >
-          {canAssign ? 'Asignar solicitud manual' : 'No disponible'}
-        </button>
+        <div className="flex flex-col gap-2">
+          <select
+            value={doc.status}
+            disabled={statusUpdating}
+            onChange={e => onStatusChange(doc, e.target.value as Doctor['status'])}
+            className="w-full h-8 rounded border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs text-zinc-700 dark:text-zinc-300 px-2 disabled:opacity-40 focus:outline-none focus:ring-1 focus:ring-sky-200 dark:focus:ring-sky-900"
+          >
+            {(['available', 'busy', 'offshift'] as const).map(s => (
+              <option key={s} value={s}>{STATUS_LABEL[s]}</option>
+            ))}
+          </select>
+          <button
+            disabled={!canAssign}
+            onClick={() => canAssign && onAssignRequest(doc)}
+            className="w-full h-8 rounded text-xs font-medium text-white disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
+            style={{ backgroundColor: canAssign ? 'var(--accent)' : undefined }}
+            onMouseEnter={e => canAssign && (e.currentTarget.style.backgroundColor = 'var(--accent-strong)')}
+            onMouseLeave={e => canAssign && (e.currentTarget.style.backgroundColor = 'var(--accent)')}
+          >
+            {canAssign ? 'Asignar solicitud manual' : 'No disponible'}
+          </button>
+        </div>
       )}
     </div>
   )
@@ -63,6 +90,7 @@ export function StaffView() {
   const [search, setSearch] = useState('')
   const [addOpen, setAddOpen] = useState(false)
   const [assignDoc, setAssignDoc] = useState<Doctor | null>(null)
+  const [statusUpdatingId, setStatusUpdatingId] = useState<string | null>(null)
 
   const load = useCallback(() => {
     setLoading(true)
@@ -72,6 +100,18 @@ export function StaffView() {
   }, [])
 
   useEffect(() => { load() }, [load])
+
+  const handleStatusChange = useCallback((doc: Doctor, status: Doctor['status']) => {
+    if (status === doc.status) return
+    setStatusUpdatingId(doc.id)
+    doctorsApi.updateStatus(doc.id, status)
+      .then(updated => {
+        setDoctors(prev => prev.map(d => d.id === updated.id ? updated : d))
+        toast.success(`${updated.name} ahora está ${STATUS_LABEL[updated.status].toLowerCase()}`)
+      })
+      .catch(() => toast.error('No se pudo actualizar el estado del médico'))
+      .finally(() => setStatusUpdatingId(null))
+  }, [])
 
   const filtered = doctors.filter(d => {
     if (filter !== 'all' && d.status !== filter) return false
@@ -149,7 +189,14 @@ export function StaffView() {
       ) : filtered.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filtered.map(d => (
-            <DoctorCard key={d.id} doc={d} canManage={isAdmin} onAssignRequest={setAssignDoc} />
+            <DoctorCard
+              key={d.id}
+              doc={d}
+              canManage={isAdmin}
+              statusUpdating={statusUpdatingId === d.id}
+              onAssignRequest={setAssignDoc}
+              onStatusChange={handleStatusChange}
+            />
           ))}
         </div>
       ) : (

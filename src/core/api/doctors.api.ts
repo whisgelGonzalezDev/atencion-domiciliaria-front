@@ -16,4 +16,7 @@ export const doctorsApi = {
 
   create: (body: CreateDoctorBody) =>
     apiClient<Doctor>('/doctors', { method: 'POST', body: JSON.stringify(body) }),
+
+  updateStatus: (id: string, status: 'available' | 'busy' | 'offshift') =>
+    apiClient<Doctor>(`/doctors/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
 }

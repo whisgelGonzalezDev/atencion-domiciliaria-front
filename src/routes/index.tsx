@@ -20,6 +20,7 @@ import { ReportsView } from '@/features/reports/ReportsView'
 import { StatisticsView } from '@/features/statistics/StatisticsView'
 import { MedicalHistoryListView } from '@/features/medical-history/MedicalHistoryListView'
 import { MedicalHistoryWizard } from '@/features/medical-history/MedicalHistoryWizard'
+import { AdminSettingsView } from '@/features/admin-settings/AdminSettingsView'
 import { ProtectedRoute } from './ProtectedRoute'
 import { RoleHomeRedirect } from './RoleHomeRedirect'
 import { ErrorBoundary } from '@/core/components'
@@ -174,6 +175,16 @@ const protectedRoutes: RouteObject[] = [
       <ProtectedRoute roles={['admin', 'doctor']}>
         <ErrorBoundary>
           <MedicalHistoryWizard />
+        </ErrorBoundary>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin-settings',
+    element: (
+      <ProtectedRoute roles={['admin']}>
+        <ErrorBoundary>
+          <AdminSettingsView />
         </ErrorBoundary>
       </ProtectedRoute>
     ),

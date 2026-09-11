@@ -296,3 +296,22 @@ export interface MedicalHistoryPatientSummary {
   updatedAt: string | null
   allergyCount: number
 }
+
+// ── Configuración del sistema (panel admin) ─────────────────────────────────
+export interface SystemSettings {
+  clinicName: string
+  logoUrl: string | null
+  accent: string
+  accentSoft: string
+  accentStrong: string
+  defaultExchangeRate: number | null
+  targetResponseMinutes: number | null
+  businessHoursStart: string | null
+  businessHoursEnd: string | null
+  notifyNewRequest: boolean
+  notifyOverdueRequest: boolean
+  updatedByName: string | null
+  updatedAt: string
+}
+
+export type UpdateSystemSettingsBody = Partial<Omit<SystemSettings, 'updatedByName' | 'updatedAt'>>

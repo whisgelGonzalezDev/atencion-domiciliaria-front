@@ -3,10 +3,11 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
   Heart, Home, List, Stethoscope, Map, Settings,
   LogOut, PanelLeft, X, Plus, Moon, Sun, Menu,
-  Users, CalendarClock, Receipt, ScrollText, UserCog, FileDown, BarChart3, ClipboardList,
+  Users, CalendarClock, Receipt, ScrollText, UserCog, FileDown, BarChart3, ClipboardList, Building2,
 } from 'lucide-react'
 import { useAuth, type Role } from '@/features/auth/hooks/useAuth'
 import { useTheme } from '@/core/providers/ThemeProvider'
+import { useSystemSettings } from '@/core/providers/SystemSettingsProvider'
 import { useProductTour } from '@/core/tour/useProductTour'
 import { NewRequestModal } from '@/features/requests/components/NewRequestModal'
 import { OfflineBanner } from '@/core/components/OfflineBanner'
@@ -41,11 +42,12 @@ const MANAGEMENT_NAV_ITEMS: NavItem[] = [
 ]
 
 const ADMIN_NAV_ITEMS: NavItem[] = [
-  { to: '/billing',    label: 'Facturación',  icon: Receipt,    roles: ['admin'] },
-  { to: '/statistics', label: 'Estadísticas', icon: BarChart3,  roles: ['admin'] },
-  { to: '/audit-logs', label: 'Auditoría',    icon: ScrollText, roles: ['admin'] },
-  { to: '/reports',    label: 'Reportes',     icon: FileDown,   roles: ['admin'] },
-  { to: '/users',      label: 'Usuarios',     icon: UserCog,    roles: ['admin'] },
+  { to: '/billing',        label: 'Facturación',    icon: Receipt,    roles: ['admin'] },
+  { to: '/statistics',     label: 'Estadísticas',   icon: BarChart3,  roles: ['admin'] },
+  { to: '/audit-logs',     label: 'Auditoría',      icon: ScrollText, roles: ['admin'] },
+  { to: '/reports',        label: 'Reportes',       icon: FileDown,   roles: ['admin'] },
+  { to: '/users',          label: 'Usuarios',       icon: UserCog,    roles: ['admin'] },
+  { to: '/admin-settings', label: 'Panel Admin',    icon: Building2,  roles: ['admin'] },
 ]
 
 const BASE = 'group flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-100'
@@ -54,6 +56,8 @@ const INACTIVE = 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:b
 
 export function DashboardLayout() {
   const { user, logout } = useAuth()
+  const { settings } = useSystemSettings()
+  const clinicName = settings?.clinicName || 'Atención domiciliaria'
   const isAdmin = user?.role === 'admin'
   const isOperativo = user?.role === 'operativo'
   const canManageOps = isAdmin || isOperativo
@@ -109,9 +113,13 @@ export function DashboardLayout() {
         <div className="flex h-14 items-center justify-between border-b border-zinc-100 dark:border-zinc-800 px-4">
           {!collapsed && (
             <div className="flex items-center gap-2 min-w-0">
-              <Heart size={18} style={{ color: 'var(--accent)' }} className="shrink-0" />
+              {settings?.logoUrl ? (
+                <img src={settings.logoUrl} alt="" className="h-5 w-5 shrink-0 rounded object-contain" />
+              ) : (
+                <Heart size={18} style={{ color: 'var(--accent)' }} className="shrink-0" />
+              )}
               <span className="text-sm font-semibold text-zinc-900 dark:text-white tracking-tight truncate">
-                Atención<span className="text-zinc-400">·domiciliaria</span>
+                {clinicName}
               </span>
             </div>
           )}

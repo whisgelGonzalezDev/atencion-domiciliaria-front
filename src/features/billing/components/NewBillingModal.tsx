@@ -4,6 +4,7 @@ import { X, Search } from 'lucide-react'
 import { billingApi, BILLING_METHODS } from '@/core/api/billing.api'
 import { requestsApi } from '@/core/api/requests.api'
 import type { MedRequest, BillingCharge } from '@/core/api/types'
+import { useSystemSettings } from '@/core/providers/SystemSettingsProvider'
 import { toast } from 'sonner'
 
 interface NewBillingModalProps {
@@ -21,6 +22,7 @@ interface FormErrors {
 }
 
 export function NewBillingModal({ open, onClose, onCreated }: NewBillingModalProps) {
+  const { settings } = useSystemSettings()
   const [reqSearch, setReqSearch] = useState('')
   const [reqResults, setReqResults] = useState<MedRequest[]>([])
   const [request, setRequest] = useState<MedRequest | null>(null)
@@ -40,6 +42,15 @@ export function NewBillingModal({ open, onClose, onCreated }: NewBillingModalPro
     }, 250)
     return () => clearTimeout(t)
   }, [open, reqSearch])
+
+  // Prellena la tasa de cambio con el valor por defecto configurado en el
+  // panel admin, sin pisar lo que la operadora ya haya escrito.
+  useEffect(() => {
+    if (open && !exchangeRate && settings?.defaultExchangeRate) {
+      setExchangeRate(String(settings.defaultExchangeRate))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, settings?.defaultExchangeRate])
 
   const amountBsPreview = (() => {
     const usd = Number(amountUsd), rate = Number(exchangeRate)

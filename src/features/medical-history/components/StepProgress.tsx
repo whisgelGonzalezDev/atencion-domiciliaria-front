@@ -44,7 +44,7 @@ export function StepProgress({ steps, currentStep, onStepClick }: StepProgressPr
                 </span>
               </button>
               {i < steps.length - 1 && (
-                <span className={['mx-3 h-px flex-1', done ? '' : 'bg-zinc-200 dark:bg-zinc-800'].join(' ')} style={done ? { backgroundColor: 'var(--accent)' } : undefined} />
+                <span className={['mx-3 h-px flex-1', done ? '' : 'bg-zinc-200 dark:bg-zinc-700'].join(' ')} style={done ? { backgroundColor: 'var(--accent)' } : undefined} />
               )}
             </li>
           )

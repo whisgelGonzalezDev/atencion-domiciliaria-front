@@ -1,6 +1,7 @@
 import { RouterProvider } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider } from '@/core/providers/ThemeProvider'
+import { SystemSettingsProvider } from '@/core/providers/SystemSettingsProvider'
 import { AuthProvider } from '@/features/auth/hooks/useAuth'
 import { useAppUpdate } from '@/core/pwa/useAppUpdate'
 import { router } from '@/routes'
@@ -23,7 +24,9 @@ export function App() {
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <RouterProvider router={router} />
+          <SystemSettingsProvider>
+            <RouterProvider router={router} />
+          </SystemSettingsProvider>
         </AuthProvider>
       </QueryClientProvider>
     </ThemeProvider>

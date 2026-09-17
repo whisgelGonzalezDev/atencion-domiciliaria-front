@@ -15,7 +15,7 @@ export const ACCENT_PRESETS = [
   { label: 'Rojo emergencia', accent: '#dc2626', accentSoft: '#fee2e2', accentStrong: '#7f1d1d' },
 ]
 
-const TWEAKS_KEY = 'atencion_tweaks'
+export const TWEAKS_KEY = 'atencion_tweaks'
 
 const DEFAULT_TWEAKS: Tweaks = {
   accent:       '#0369a1',

@@ -25,7 +25,7 @@ export class OfflineNoCacheError extends Error {
 }
 
 type RequestOptions = Omit<RequestInit, 'body'> & {
-  body?: string
+  body?: string | FormData
   params?: Record<string, string | number | boolean>
   /** Human-readable label shown while this action is queued offline. */
   offlineDescription?: string
@@ -60,6 +60,7 @@ export async function apiClient<T>(
   const url = buildUrl(endpoint, params)
   const token = localStorage.getItem('auth_token')
   const isMutating = method !== 'GET'
+  const isFormData = body instanceof FormData
 
   let response: Response
   try {
@@ -67,14 +68,15 @@ export async function apiClient<T>(
       ...rest,
       method,
       headers: {
-        'Content-Type': 'application/json',
+        // El navegador debe fijar su propio Content-Type (con boundary) para FormData.
+        ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...(headers as Record<string, string>),
       },
       body,
     })
   } catch {
-    if (isMutating && (method === 'POST' || method === 'PATCH' || method === 'DELETE')) {
+    if (!isFormData && isMutating && (method === 'POST' || method === 'PATCH' || method === 'DELETE')) {
       await enqueueAction({
         method,
         endpoint: endpoint + url.search,

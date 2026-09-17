@@ -17,6 +17,7 @@ import { BillingView } from '@/features/billing/BillingView'
 import { AuditLogsView } from '@/features/audit-logs/AuditLogsView'
 import { UsersView } from '@/features/users/UsersView'
 import { ReportsView } from '@/features/reports/ReportsView'
+import { GaleriaView } from '@/features/gallery/GaleriaView'
 import { ProtectedRoute } from './ProtectedRoute'
 import { RoleHomeRedirect } from './RoleHomeRedirect'
 import { ErrorBoundary } from '@/core/components'
@@ -141,6 +142,16 @@ const protectedRoutes: RouteObject[] = [
       <ProtectedRoute roles={['admin']}>
         <ErrorBoundary>
           <ReportsView />
+        </ErrorBoundary>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/galeria',
+    element: (
+      <ProtectedRoute roles={['admin']}>
+        <ErrorBoundary>
+          <GaleriaView />
         </ErrorBoundary>
       </ProtectedRoute>
     ),

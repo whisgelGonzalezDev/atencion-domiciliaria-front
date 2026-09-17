@@ -12,6 +12,7 @@ import { Avatar } from '@/components/ui/Avatar'
 import { Card } from '@/core/components/Card'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { AssignDoctorModal } from './components/AssignDoctorModal'
+import { AttachmentsSection } from './components/AttachmentsSection'
 import { type StateId } from '@/data/medData'
 import { toast } from 'sonner'
 
@@ -358,6 +359,11 @@ export function RequestDetailView() {
                 </button>
               </div>
             )}
+          </Card>
+
+          {/* Attachments */}
+          <Card padding="md">
+            <AttachmentsSection requestId={req.id} canUpload={canAddNote} />
           </Card>
         </div>
 

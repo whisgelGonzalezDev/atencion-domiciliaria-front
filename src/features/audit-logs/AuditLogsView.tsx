@@ -10,6 +10,7 @@ const ACTION_COLOR: Record<string, string> = {
   update: 'bg-sky-50 dark:bg-sky-950 text-sky-700 dark:text-sky-400',
   cancel: 'bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-400',
   delete: 'bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-400',
+  access: 'bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-400',
 }
 
 function actionColor(action: string): string {

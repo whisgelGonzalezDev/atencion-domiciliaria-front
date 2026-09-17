@@ -1,5 +1,5 @@
 import { useState, useEffect, createContext, useContext } from 'react'
-import { apiClient } from '@/core/utils/apiClient'
+import { apiClient, ApiError } from '@/core/utils/apiClient'
 
 export type Role = 'admin' | 'operativo' | 'doctor'
 
@@ -34,15 +34,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const token = localStorage.getItem('auth_token')
     const stored = localStorage.getItem('auth_user')
-    if (token && stored) {
-      try {
-        setUser(JSON.parse(stored) as AuthUser)
-      } catch {
-        localStorage.removeItem('auth_token')
-        localStorage.removeItem('auth_user')
-      }
+
+    if (!token) {
+      setIsLoading(false)
+      return
     }
-    setIsLoading(false)
+
+    // No basta con que localStorage tenga algo guardado: un token vencido o
+    // revocado igual pasaría el guard de ProtectedRoute si solo miráramos
+    // "hay usuario en localStorage". Se confirma contra el backend antes de
+    // dar la sesión por válida.
+    apiClient<AuthUser>('/auth/me')
+      .then(freshUser => {
+        localStorage.setItem('auth_user', JSON.stringify(freshUser))
+        setUser(freshUser)
+      })
+      .catch(err => {
+        if (err instanceof ApiError) {
+          // El backend rechazó el token explícitamente (vencido/inválido) — cerramos sesión.
+          localStorage.removeItem('auth_token')
+          localStorage.removeItem('auth_user')
+          setUser(null)
+          return
+        }
+        // Sin conexión: no se puede confirmar la sesión contra el backend,
+        // pero tampoco hay motivo para cerrarla en una app pensada para
+        // conectividad inestable — se sigue con lo último guardado.
+        if (stored) {
+          try {
+            setUser(JSON.parse(stored) as AuthUser)
+          } catch {
+            localStorage.removeItem('auth_token')
+            localStorage.removeItem('auth_user')
+          }
+        }
+      })
+      .finally(() => setIsLoading(false))
   }, [])
 
   const login = async (email: string, password: string) => {

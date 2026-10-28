@@ -14,6 +14,7 @@
     "driver.js": "^1.8.0",
     "i18next": "^23.15.1",
     "i18next-browser-languagedetector": "^8.0.0",
+    "jspdf": "^4.2.1",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.447.0",
     "react": "^18.3.1",

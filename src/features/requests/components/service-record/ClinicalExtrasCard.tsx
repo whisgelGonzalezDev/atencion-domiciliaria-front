@@ -7,10 +7,11 @@ interface ClinicalExtrasCardProps {
   update: (updater: (prev: ServiceRecord) => ServiceRecord) => void
 }
 
-const FIELDS: { key: 'paraclinicalExams' | 'medicalRecommendations' | 'specialistReferences'; label: string }[] = [
+const FIELDS: { key: 'paraclinicalExams' | 'medicalRecommendations' | 'specialistReferences' | 'interconsultaText'; label: string; rows?: number }[] = [
   { key: 'paraclinicalExams', label: 'Exámenes paraclínicos' },
   { key: 'medicalRecommendations', label: 'Recomendaciones médicas' },
   { key: 'specialistReferences', label: 'Referencias a especialistas' },
+  { key: 'interconsultaText', label: 'Informe de interconsulta', rows: 5 },
 ]
 
 export function ClinicalExtrasCard({ data, update }: ClinicalExtrasCardProps) {
@@ -23,7 +24,7 @@ export function ClinicalExtrasCard({ data, update }: ClinicalExtrasCardProps) {
         {FIELDS.map(f => (
           <div key={f.key}>
             <label className={labelCls}>{f.label}</label>
-            <textarea value={data[f.key]} onChange={e => set(f.key, e.target.value)} rows={2} className={inputCls()} />
+            <textarea value={data[f.key]} onChange={e => set(f.key, e.target.value)} rows={f.rows ?? 2} className={inputCls()} />
           </div>
         ))}
       </div>

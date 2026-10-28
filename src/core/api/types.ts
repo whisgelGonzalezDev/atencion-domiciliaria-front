@@ -131,6 +131,7 @@ export interface ServiceRecord {
   paraclinicalExams: string
   medicalRecommendations: string
   specialistReferences: string
+  interconsultaText: string
   successiveServiceRequested: boolean
   successiveServiceNotes: string
   affiliateSignedAt: string | null

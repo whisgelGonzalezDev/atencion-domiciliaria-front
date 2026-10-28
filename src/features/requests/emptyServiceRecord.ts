@@ -31,6 +31,7 @@ export function emptyServiceRecord(serviceType: ServiceType = 'AMD'): ServiceRec
     paraclinicalExams: '',
     medicalRecommendations: '',
     specialistReferences: '',
+    interconsultaText: '',
     successiveServiceRequested: false,
     successiveServiceNotes: '',
     affiliateSignedAt: null,

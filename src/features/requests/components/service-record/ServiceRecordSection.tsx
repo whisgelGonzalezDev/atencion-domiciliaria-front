@@ -16,6 +16,7 @@ import { SuppliesCard } from './SuppliesCard'
 import { ClinicalExtrasCard } from './ClinicalExtrasCard'
 import { SuccessiveServiceCard } from './SuccessiveServiceCard'
 import { SignaturesCard } from './SignaturesCard'
+import { DocumentsCard } from './DocumentsCard'
 
 interface ServiceRecordSectionProps {
   request: MedRequest
@@ -47,6 +48,7 @@ export function ServiceRecordSection({ request, history, onNavigateHistory }: Se
       <ClinicalExtrasCard data={data} update={update} />
       <SuccessiveServiceCard data={data} update={update} />
       <SignaturesCard data={data} update={update} />
+      <DocumentsCard request={request} data={data} />
     </div>
   )
 }

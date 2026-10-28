@@ -1,5 +1,5 @@
 import { apiClient } from '@/core/utils/apiClient'
-import type { MedRequest, PaginatedResult, WhatsAppLink } from './types'
+import type { MedRequest, PaginatedResult, ServiceRecord, WhatsAppLink } from './types'
 
 export interface RequestsFilter {
   page?: number
@@ -70,4 +70,11 @@ export const requestsApi = {
 
   getWhatsAppLink: (id: string) =>
     apiClient<WhatsAppLink>(`/requests/${id}/whatsapp-link`),
+
+  updateServiceRecord: (id: string, body: ServiceRecord) =>
+    apiClient<MedRequest>(`/requests/${id}/service-record`, {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+      offlineDescription: `Ficha de servicio ${id}`,
+    }),
 }

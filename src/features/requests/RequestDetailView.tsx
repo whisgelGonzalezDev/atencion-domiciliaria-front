@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, MapPin, Clock, ChevronRight,
-  PhoneCall, User, Map, Stethoscope, Check, Star, MessageCircle, Ban, History,
+  PhoneCall, User, Map, Stethoscope, Check, Star, MessageCircle, Ban,
 } from 'lucide-react'
 import { requestsApi } from '@/core/api/requests.api'
 import type { MedRequest } from '@/core/api/types'
@@ -13,6 +13,7 @@ import { Card } from '@/core/components/Card'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { AssignDoctorModal } from './components/AssignDoctorModal'
 import { AttachmentsSection } from './components/AttachmentsSection'
+import { ServiceRecordSection } from './components/service-record/ServiceRecordSection'
 import { type StateId } from '@/data/medData'
 import { toast } from 'sonner'
 
@@ -60,7 +61,6 @@ export function RequestDetailView() {
   const [cancelling, setCancelling] = useState(false)
   const [sendingWhatsApp, setSendingWhatsApp] = useState(false)
   const [history, setHistory] = useState<MedRequest[]>([])
-  const [historyLoading, setHistoryLoading] = useState(false)
 
   useEffect(() => {
     if (!id) { setNotFound(true); setLoading(false); return }
@@ -75,11 +75,9 @@ export function RequestDetailView() {
 
   useEffect(() => {
     if (!req) return
-    setHistoryLoading(true)
     requestsApi.getAll({ patientId: req.patient.id, limit: 10 })
       .then(res => setHistory(res.data.filter(r => r.id !== req.id)))
       .catch(() => setHistory([]))
-      .finally(() => setHistoryLoading(false))
   }, [req?.patient.id, req?.id])
 
   const handleAdvanceState = async () => {
@@ -264,30 +262,6 @@ export function RequestDetailView() {
                 <p className="text-sm text-zinc-600 dark:text-zinc-400">{req.patient.historyShort}</p>
               </div>
             )}
-            {!historyLoading && history.length > 0 && (
-              <div className="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
-                <p className="text-[10px] text-zinc-400 mb-2 flex items-center gap-1">
-                  <History size={11} /> Otras visitas de {req.patient.name} ({history.length})
-                </p>
-                <div className="space-y-1.5">
-                  {history.map(h => (
-                    <button
-                      key={h.id}
-                      onClick={() => navigate(`/requests/${h.id}`)}
-                      className="w-full flex items-center justify-between gap-3 rounded-lg bg-zinc-50 dark:bg-zinc-800/50 px-3 py-2 text-left hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-                    >
-                      <div className="min-w-0">
-                        <p className="text-xs text-zinc-700 dark:text-zinc-300 truncate">{h.symptoms}</p>
-                        <p className="text-[10px] text-zinc-400">
-                          {new Date(h.callTime).toLocaleDateString('es', { day: '2-digit', month: 'short', year: 'numeric' })}
-                        </p>
-                      </div>
-                      <StateBadge state={h.state} size="sm" />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
           </Card>
 
           {/* Request details + vitals */}
@@ -323,9 +297,16 @@ export function RequestDetailView() {
             )}
           </Card>
 
+          {/* Ficha de servicio */}
+          <ServiceRecordSection
+            request={req}
+            history={history}
+            onNavigateHistory={(hid) => navigate(`/requests/${hid}`)}
+          />
+
           {/* Notes */}
           <Card padding="md">
-            <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500 mb-3">Notas Internas</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500 mb-3">Comentarios</p>
             {req.notes.length > 0 ? (
               <div className="space-y-2 mb-3">
                 {req.notes.map(note => (

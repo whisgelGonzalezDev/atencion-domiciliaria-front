@@ -1,6 +1,6 @@
 import { useState, type KeyboardEvent } from 'react'
 import { Plus, X } from 'lucide-react'
-import { inputCls } from '../formStyles'
+import { inputCls } from './formStyles'
 
 interface ChipListInputProps {
   value: string[]

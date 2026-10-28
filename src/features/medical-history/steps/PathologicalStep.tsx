@@ -1,5 +1,5 @@
 import type { AllergyEntry, MedicationEntry, SurgeryEntry } from '@/core/api/types'
-import { ChipListInput } from '../components/ChipListInput'
+import { ChipListInput } from '@/core/components'
 import { DynamicRowsField } from '../components/DynamicRowsField'
 import type { StepProps } from './types'
 

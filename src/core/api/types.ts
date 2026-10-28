@@ -50,6 +50,94 @@ export interface MedRequest {
   doctor?: Doctor
   vitals?: { bp: string; hr: number; temp: string; spo2: number }
   notes: Note[]
+  serviceRecord?: ServiceRecord
+}
+
+// ── Ficha de servicio (registro clínico de la visita) ───────────────────────
+export const SERVICE_TYPES = ['AMD', 'OMT', 'OMV', 'EMD', 'LEL', 'DRV', 'UC', 'VIT', 'TLD'] as const
+export type ServiceType = typeof SERVICE_TYPES[number]
+
+export interface AffiliateInfo {
+  idNumber: string
+  sex: 'M' | 'F' | ''
+  birthDate: string
+  insurancePlan: string
+  insuranceBranch: string
+  policyHolder: string
+  email: string
+}
+
+export interface RoomDetails {
+  hasElectricity: boolean
+  hasUnitGuard: boolean
+  hasPrecipitation: boolean
+  hasElevator: boolean
+}
+
+export interface ExternalProviderAssignment {
+  enabled: boolean
+  headquarters: string
+  providerName: string
+  createdBy: string
+  attendedBy: string
+}
+
+export interface ServiceTiming {
+  startDate: string
+  startTime: string
+  endDate: string
+  endTime: string
+}
+
+export interface SwabTest {
+  type: 'particular' | 'venemergencia' | ''
+  result: 'positive' | 'negative' | ''
+}
+
+export interface FullVitals {
+  hr: string
+  rr: string
+  spo2: string
+  bp: string
+  temp: string
+  glucose: string
+}
+
+export interface MedicationItem { activeIngredient: string; presentation: string; quantity: string }
+export interface OtherMedicationItem { name: string; indications: string }
+export interface SupplyItem { name: string; quantity: string }
+
+export interface ServiceRecord {
+  serviceType: ServiceType
+  affiliate: AffiliateInfo
+  roomDetails: RoomDetails
+  externalProvider: ExternalProviderAssignment
+  timing: ServiceTiming
+  currentIllness: string
+  medicalBackground: string
+  functionalExam: string
+  swabTest: SwabTest
+  fullVitals: FullVitals
+  physicalExam: string
+  symptomsList: string[]
+  diagnosis: string
+  diagnosisNotes: string
+  medicalExclusions: string
+  medications: MedicationItem[]
+  otherMedications: OtherMedicationItem[]
+  recipeText: string
+  indicationsText: string
+  supplies: SupplyItem[]
+  paraclinicalExams: string
+  medicalRecommendations: string
+  specialistReferences: string
+  interconsultaText: string
+  successiveServiceRequested: boolean
+  successiveServiceNotes: string
+  affiliateSignedAt: string | null
+  doctorSignedAt: string | null
+  affiliateSignatureDataUrl: string | null
+  doctorSignatureDataUrl: string | null
 }
 
 export interface KpiData {

@@ -47,6 +47,8 @@ export interface MedRequest {
   callTime: string
   minutesAgo: number
   zone: { id: string; name: string }
+  /** Organization that asked for the visit; null uses the default document formats. */
+  requestingEntity?: { id: string; name: string } | null
   doctor?: Doctor
   vitals?: { bp: string; hr: number; temp: string; spo2: number }
   notes: Note[]

@@ -15,5 +15,6 @@ export const medicalHistoryApi = {
       method: 'PATCH',
       body: JSON.stringify(data),
       offlineDescription: description,
+      offlineKey: `medical-history:${patientId}`,
     }),
 }

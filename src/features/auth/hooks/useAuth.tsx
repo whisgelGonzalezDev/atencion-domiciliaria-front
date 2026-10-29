@@ -50,8 +50,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(freshUser)
       })
       .catch(err => {
-        if (err instanceof ApiError) {
+        if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
           // El backend rechazó el token explícitamente (vencido/inválido) — cerramos sesión.
+          // Un 5xx (p. ej. Render despertando) NO es un rechazo: cae en el caso sin conexión.
           localStorage.removeItem('auth_token')
           localStorage.removeItem('auth_user')
           setUser(null)

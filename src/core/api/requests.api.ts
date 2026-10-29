@@ -75,6 +75,7 @@ export const requestsApi = {
     apiClient<MedRequest>(`/requests/${id}/service-record`, {
       method: 'PATCH',
       body: JSON.stringify(body),
-      offlineDescription: `Ficha de servicio ${id}`,
+      offlineDescription: `Ficha de servicio #${id.slice(0, 8)}`,
+      offlineKey: `service-record:${id}`,
     }),
 }

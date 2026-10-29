@@ -7,6 +7,8 @@ import {
   flushQueue,
   getQueueSnapshot,
   retryAction,
+  rewriteAndRetry,
+  subscribeDiscarded,
   subscribeSynced,
   type QueuedAction,
   type ReplayOutcome,
@@ -25,8 +27,10 @@ describe('classifyStatus', () => {
   it('treats 401 as an expired session', () => expect(classifyStatus(401, '').kind).toBe('auth'))
   it.each([408, 429, 500, 502, 503, 504])('keeps the action queued on %i (retry later)', (s) =>
     expect(classifyStatus(s, '').kind).toBe('offline'))
-  it.each([400, 403, 404, 409, 422])('parks the action as rejected on %i', (s) =>
+  it.each([400, 403, 404, 422])('parks the action as rejected on %i', (s) =>
     expect(classifyStatus(s, 'nope')).toEqual({ kind: 'rejected', message: 'nope' }))
+  it('flags 409 as a conflict', () =>
+    expect(classifyStatus(409, 'nope')).toEqual({ kind: 'rejected', message: 'nope', conflict: true }))
 })
 
 describe('offline queue', () => {
@@ -125,6 +129,25 @@ describe('offline queue', () => {
 
     await flushQueue(ok)
     expect(getQueueSnapshot().actions).toHaveLength(0)
+  })
+
+  it('keeps a conflicting action, lets it be rebased onto a new baseline, and announces a discard', async () => {
+    await enqueueAction({ ...base, key: 'sr:c', body: '{"baseRevision":1}' })
+    await flushQueue(async () => ({ kind: 'rejected', message: 'otra persona', conflict: true }))
+    const [parked] = getQueueSnapshot().actions
+    expect(parked).toMatchObject({ status: 'failed', conflict: true })
+
+    await rewriteAndRetry(parked.id, () => '{"baseRevision":2}')
+    const [rebased] = getQueueSnapshot().actions
+    expect(rebased).toMatchObject({ body: '{"baseRevision":2}' })
+    expect(rebased.status).toBeUndefined()
+    expect(rebased.conflict).toBeUndefined()
+
+    const dropped = vi.fn()
+    const off = subscribeDiscarded(dropped)
+    await discardAction(rebased.id)
+    off()
+    expect(dropped).toHaveBeenCalledTimes(1)
   })
 
   it('never replays another user’s actions', async () => {

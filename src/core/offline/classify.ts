@@ -8,5 +8,5 @@ export function classifyStatus(status: number, message: string): ReplayOutcome {
   if (status >= 200 && status < 300) return { kind: 'ok' }
   if (status === 401) return { kind: 'auth' }
   if (status === 408 || status === 425 || status === 429 || status >= 500) return { kind: 'offline' }
-  return { kind: 'rejected', message }
+  return status === 409 ? { kind: 'rejected', message, conflict: true } : { kind: 'rejected', message }
 }

@@ -108,6 +108,8 @@ export interface OtherMedicationItem { name: string; indications: string }
 export interface SupplyItem { name: string; quantity: string }
 
 export interface ServiceRecord {
+  /** Server-managed save counter; sent back as `baseRevision` to detect concurrent edits. */
+  revision?: number
   serviceType: ServiceType
   affiliate: AffiliateInfo
   roomDetails: RoomDetails

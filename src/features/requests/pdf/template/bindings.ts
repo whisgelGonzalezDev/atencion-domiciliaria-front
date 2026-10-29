@@ -1,3 +1,4 @@
+import { formatIdNumber } from '@/core/utils/idNumber'
 import type { MedicationItem, MedRequest, OtherMedicationItem, ServiceRecord, SupplyItem } from '@/core/api/types'
 
 export interface BindingContext {
@@ -26,7 +27,10 @@ export const BINDINGS: Record<string, Binding> = {
   'patient.age': { label: 'Edad', group: 'Paciente', kind: 'short', resolve: ({ request }) => `${request.patient.age} años` },
   'patient.phone': { label: 'Teléfono', group: 'Paciente', kind: 'short', resolve: ({ request }) => request.patient.phone },
   'patient.address': { label: 'Dirección', group: 'Paciente', kind: 'long', resolve: ({ request }) => request.address },
-  'affiliate.idNumber': { label: 'Cédula', group: 'Afiliado', kind: 'short', resolve: ({ record }) => record.affiliate.idNumber },
+  'affiliate.idNumber': {
+    label: 'Cédula', group: 'Afiliado', kind: 'short',
+    resolve: ({ record, request }) => record.affiliate.idNumber || formatIdNumber(request.patient.idNumber),
+  },
   'affiliate.sex': { label: 'Sexo', group: 'Afiliado', kind: 'short', resolve: ({ record }) => record.affiliate.sex },
   'affiliate.insurancePlan': { label: 'Plan', group: 'Afiliado', kind: 'short', resolve: ({ record }) => record.affiliate.insurancePlan },
   'affiliate.insuranceBranch': { label: 'Ramo', group: 'Afiliado', kind: 'short', resolve: ({ record }) => record.affiliate.insuranceBranch },

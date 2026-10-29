@@ -1,3 +1,4 @@
+import { formatIdNumber } from '@/core/utils/idNumber'
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search, UserPlus, ChevronLeft, ChevronRight, Droplet } from 'lucide-react'
@@ -59,7 +60,7 @@ export function PatientsView() {
         <input
           value={filter.search ?? ''}
           onChange={e => handleSearch(e.target.value)}
-          placeholder="Buscar por nombre o teléfono..."
+          placeholder="Buscar por nombre, cédula o teléfono..."
           className="pl-8 pr-3 h-8 rounded border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-sky-200 dark:focus:ring-sky-900 w-72"
         />
       </div>
@@ -69,7 +70,7 @@ export function PatientsView() {
           <table className="min-w-full text-sm">
             <thead>
               <tr className="border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/80">
-                {['Paciente', 'Edad', 'Teléfono', 'Tipo sanguíneo', 'Historial'].map(h => (
+                {['Paciente', 'Cédula', 'Edad', 'Teléfono', 'Tipo sanguíneo', 'Historial'].map(h => (
                   <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -77,7 +78,7 @@ export function PatientsView() {
             <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-12 text-center">
+                  <td colSpan={6} className="px-4 py-12 text-center">
                     <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-700 dark:border-zinc-700 dark:border-t-zinc-300" />
                   </td>
                 </tr>
@@ -93,6 +94,7 @@ export function PatientsView() {
                       <p className="text-xs font-medium text-zinc-900 dark:text-white">{p.name}</p>
                     </div>
                   </td>
+                  <td className="px-4 py-3 font-mono text-xs text-zinc-500 dark:text-zinc-400 whitespace-nowrap">{formatIdNumber(p.idNumber) || '—'}</td>
                   <td className="px-4 py-3 text-xs text-zinc-600 dark:text-zinc-400 whitespace-nowrap">{p.age} años</td>
                   <td className="px-4 py-3 font-mono text-xs text-zinc-500 dark:text-zinc-400 whitespace-nowrap">{p.phone}</td>
                   <td className="px-4 py-3 whitespace-nowrap">

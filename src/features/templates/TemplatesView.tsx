@@ -3,6 +3,7 @@ import { Pencil, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { requestingEntitiesApi, type RequestingEntity } from '@/core/api/requesting-entities.api'
 import { EntityModal } from './EntityModal'
+import { TemplateEditor } from './TemplateEditor'
 
 type Tab = 'entities' | 'templates'
 
@@ -64,10 +65,7 @@ export function TemplatesView() {
       </div>
 
       {tab === 'templates' ? (
-        <div className="rounded-lg border border-dashed border-zinc-300 dark:border-zinc-700 px-4 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">
-          El editor de plantillas (logo, membrete y campos de cada documento) llega en la siguiente fase.
-          Por ahora registra las entidades solicitantes en la pestaña Entidades.
-        </div>
+        <TemplateEditor entities={entities} />
       ) : (
         <>
           <div className="flex items-center justify-between gap-3">

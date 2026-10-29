@@ -12,6 +12,7 @@ vi.mock('jspdf', () => ({
     constructor() {
       return new Proxy({}, {
         get: (_t, name: string) => {
+          if (name === 'then') return undefined // a real jsPDF is not thenable
           if (name === 'splitTextToSize') {
             // Deterministic stand-in for jsPDF's width-based wrapping.
             return (text: string) => text.split('\n').flatMap((l) => l.match(/.{1,90}(\s|$)|\S+/g)?.map((s) => s.trim()) ?? [''])

@@ -6,7 +6,7 @@ vi.mock('jspdf', () => ({
   jsPDF: class {
     constructor() {
       return new Proxy({}, {
-        get: (_t, name: string) => name === 'splitTextToSize'
+        get: (_t, name: string) => name === 'then' ? undefined : name === 'splitTextToSize'
           ? (text: string) => text.split('\n')
           : (...args: unknown[]) => { calls.push([name, ...args]) },
       })

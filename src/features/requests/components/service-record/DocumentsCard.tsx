@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { FileDown } from 'lucide-react'
 import { toast } from 'sonner'
 import type { MedRequest, ServiceRecord } from '@/core/api/types'
+import { documentTemplatesApi } from '@/core/api/document-templates.api'
+import type { DocumentDefinition } from '../../pdf/template/types'
 import { useSystemSettings } from '@/core/providers/SystemSettingsProvider'
 import { SectionCard } from './SectionCard'
 
@@ -16,7 +18,7 @@ type Settings = ReturnType<typeof useSystemSettings>['settings']
 // Dynamically imported: jsPDF (+ its html2canvas/dompurify transitive deps)
 // is only needed once someone actually downloads a document, not on every
 // page load of the request detail view.
-const DOCS: { id: DocId; label: string; load: () => Promise<(request: MedRequest, data: ServiceRecord, settings: Settings) => Promise<void>> }[] = [
+const DOCS: { id: DocId; label: string; load: () => Promise<(request: MedRequest, data: ServiceRecord, settings: Settings, template?: DocumentDefinition | null) => Promise<void>> }[] = [
   { id: 'recipe', label: 'Récipe', load: () => import('../../pdf/recipePdf').then(m => m.generateRecipePdf) },
   { id: 'report', label: 'Informe de atención médica', load: () => import('../../pdf/medicalReportPdf').then(m => m.generateMedicalReportPdf) },
   { id: 'interconsulta', label: 'Informe de interconsulta', load: () => import('../../pdf/interconsultaPdf').then(m => m.generateInterconsultaPdf) },
@@ -29,8 +31,12 @@ export function DocumentsCard({ request, data }: DocumentsCardProps) {
   const handleGenerate = async (doc: typeof DOCS[number]) => {
     setGenerating(doc.id)
     try {
-      const generate = await doc.load()
-      await generate(request, data, settings)
+      const [generate, templates] = await Promise.all([
+        doc.load(),
+        // Without connection (or before the feature is deployed) the built-in layout is used.
+        documentTemplatesApi.resolve(request.requestingEntity?.id).catch(() => null),
+      ])
+      await generate(request, data, settings, templates?.[doc.id])
     } catch {
       toast.error(`No se pudo generar el documento: ${doc.label}`)
     } finally {

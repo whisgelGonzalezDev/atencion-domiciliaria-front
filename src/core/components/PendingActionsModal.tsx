@@ -2,7 +2,9 @@ import { useState } from 'react'
 import { Modal } from './Modal'
 import { Button } from './Button'
 import { useOfflineQueue, triggerSync } from '@/core/offline/useOfflineQueue'
-import { discardAction, retryAction } from '@/core/offline/queue'
+import { discardAction, retryAction, type QueuedAction } from '@/core/offline/queue'
+import { overwriteConflict, serviceRecordIdOf } from '@/core/offline/conflicts'
+import { clearDraft } from '@/features/requests/serviceRecordDraftStorage'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 
 function formatTime(ms: number): string {
@@ -28,6 +30,13 @@ export function PendingActionsModal({ open, onClose }: { open: boolean; onClose:
     void syncNow()
   }
 
+  const discard = async (a: QueuedAction) => {
+    // The local draft would otherwise re-submit the discarded edit next time the ficha opens.
+    const requestId = serviceRecordIdOf(a)
+    if (requestId) clearDraft(requestId)
+    await discardAction(a.id)
+  }
+
   return (
     <Modal open={open} onClose={onClose} size="lg">
       <Modal.Header onClose={onClose}>Cambios sin sincronizar</Modal.Header>
@@ -48,14 +57,17 @@ export function PendingActionsModal({ open, onClose }: { open: boolean; onClose:
                     <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">{a.description}</p>
                     <p className="text-xs text-zinc-400">{formatTime(a.createdAt)}</p>
                     {a.status === 'failed' && (
-                      <p className="mt-1 text-xs text-red-600 dark:text-red-400">Rechazada: {a.lastError}</p>
+                      <p className="mt-1 text-xs text-red-600 dark:text-red-400">{a.conflict ? 'Otra persona modificó esto mientras estabas sin conexión' : `Rechazada: ${a.lastError}`}</p>
                     )}
                   </div>
                   <div className="flex shrink-0 gap-1">
-                    {a.status === 'failed' && (
+                    {a.status === 'failed' && a.conflict && serviceRecordIdOf(a) && (
+                      <Button size="sm" variant="secondary" onClick={() => void overwriteConflict(a)}>Usar mis cambios</Button>
+                    )}
+                    {a.status === 'failed' && !a.conflict && (
                       <Button size="sm" variant="secondary" onClick={() => void retry(a.id)}>Reintentar</Button>
                     )}
-                    <Button size="sm" variant="ghost" onClick={() => void discardAction(a.id)}>Descartar</Button>
+                    <Button size="sm" variant="ghost" onClick={() => void discard(a)}>Descartar</Button>
                   </div>
                 </div>
               </li>

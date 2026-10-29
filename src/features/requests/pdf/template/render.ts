@@ -60,13 +60,12 @@ function fillSubtitle(template: string, requestId: string): string {
 }
 
 /** Draws any document definition. The definition is data: unknown bindings print as empty, never as an error. */
-export async function renderDocument(
-  docType: DocType,
+export async function buildDocument(
   definition: DocumentDefinition,
   request: MedRequest,
   record: ServiceRecord,
   settings: SystemSettings | null,
-): Promise<void> {
+): Promise<jsPDF> {
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
   const accentRgb = hexToRgb(definition.header.accent ?? settings?.accent ?? '#2563eb')
   const logoDataUrl = definition.header.showLogo ? await loadLogoDataUrl(settings?.logoUrl) : null
@@ -91,6 +90,17 @@ export async function renderDocument(
     doc.text(`Fecha: ${new Date().toLocaleDateString('es', { day: '2-digit', month: 'long', year: 'numeric' })}`, MARGIN, 290)
   }
 
+  return doc
+}
+
+export async function renderDocument(
+  docType: DocType,
+  definition: DocumentDefinition,
+  request: MedRequest,
+  record: ServiceRecord,
+  settings: SystemSettings | null,
+): Promise<void> {
+  const doc = await buildDocument(definition, request, record, settings)
   doc.save(`${DOC_FILE_PREFIX[docType]}-${request.id}.pdf`)
 }
 

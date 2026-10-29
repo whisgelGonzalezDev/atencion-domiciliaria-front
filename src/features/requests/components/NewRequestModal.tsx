@@ -4,6 +4,7 @@ import { X, MapPin } from 'lucide-react'
 import { type PriorityId } from '@/data/medData'
 import { requestsApi } from '@/core/api/requests.api'
 import { zonesApi } from '@/core/api/zones.api'
+import { requestingEntitiesApi, type RequestingEntity } from '@/core/api/requesting-entities.api'
 import type { Zone } from '@/core/api/types'
 import { toast } from 'sonner'
 
@@ -26,6 +27,8 @@ interface FormErrors {
 
 export function NewRequestModal({ open, onClose, onCreated }: NewRequestModalProps) {
   const [zones, setZones] = useState<Zone[]>([])
+  const [entities, setEntities] = useState<RequestingEntity[]>([])
+  const [entityId, setEntityId] = useState('')
 
   const [name, setName] = useState('')
   const [age, setAge] = useState('')
@@ -42,6 +45,7 @@ export function NewRequestModal({ open, onClose, onCreated }: NewRequestModalPro
 
   useEffect(() => {
     zonesApi.getAll().then(setZones).catch(() => {})
+    requestingEntitiesApi.getAll().then((all) => setEntities(all.filter((e) => e.active))).catch(() => {})
   }, [])
 
   const validate = (): boolean => {
@@ -72,6 +76,7 @@ export function NewRequestModal({ open, onClose, onCreated }: NewRequestModalPro
         symptoms: symptoms.trim(),
         ...(notes.trim() ? { additionalNotes: notes.trim() } : {}),
         zoneId: zone,
+        ...(entityId ? { requestingEntityId: entityId } : {}),
       })
       toast.success('Solicitud creada · pendiente de asignación')
       onCreated?.()
@@ -98,7 +103,7 @@ export function NewRequestModal({ open, onClose, onCreated }: NewRequestModalPro
 
   const handleClose = () => {
     setName(''); setAge(''); setPhone(''); setBlood(''); setAddress('')
-    setZone(''); setRefs(''); setSymptoms(''); setNotes('')
+    setZone(''); setEntityId(''); setRefs(''); setSymptoms(''); setNotes('')
     setPriority('mid'); setErrors({}); setLoading(false)
     onClose()
   }
@@ -176,6 +181,15 @@ export function NewRequestModal({ open, onClose, onCreated }: NewRequestModalPro
                   </select>
                   {errors.zone && <p className="text-[10px] text-red-500">{errors.zone}</p>}
                 </div>
+                {entities.length > 0 && (
+                  <div className="col-span-6 space-y-1">
+                    <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">Entidad solicitante</label>
+                    <select value={entityId} onChange={e => setEntityId(e.target.value)} className={inputCls(false)}>
+                      <option value="">Particular / sin entidad</option>
+                      {entities.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
+                    </select>
+                  </div>
+                )}
                 <div className="col-span-6 space-y-1">
                   <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">Referencias</label>
                   <textarea value={refs} onChange={e => setRefs(e.target.value)} placeholder="Edificio, apto, referencia adicional..." rows={2} className={[inputCls(false), 'resize-none'].join(' ')} />

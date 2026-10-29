@@ -39,6 +39,7 @@ export const requestsApi = {
     symptoms: string
     additionalNotes?: string
     zoneId: string
+    requestingEntityId?: string
   }) => apiClient<MedRequest>('/requests', { method: 'POST', body: JSON.stringify(body) }),
 
   advanceState: (id: string) =>
@@ -65,6 +66,7 @@ export const requestsApi = {
     symptoms: string
     additionalNotes: string
     priority: string
+    requestingEntityId: string | null
   }>) =>
     apiClient<MedRequest>(`/requests/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
 

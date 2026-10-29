@@ -1,9 +1,10 @@
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react'
 import { toast } from 'sonner'
 import { Card } from '@/core/components/Card'
 import { useMedicalHistoryDraft } from './useMedicalHistoryDraft'
 import { StepProgress } from './components/StepProgress'
+import { RequestContextPanel } from './components/RequestContextPanel'
 import { DraftBanner } from './components/DraftBanner'
 import { SaveStatusIndicator } from './components/SaveStatusIndicator'
 import { PathologicalStep } from './steps/PathologicalStep'
@@ -26,6 +27,9 @@ const STEPS: { label: string; Component: (props: StepProps) => React.ReactElemen
 export function MedicalHistoryWizard() {
   const { patientId } = useParams<{ patientId: string }>()
   const navigate = useNavigate()
+  // Set when the history was opened from a request: files are attached to that request.
+  const requestId = useSearchParams()[0].get('solicitud')
+  const exitTo = requestId ? `/requests/${requestId}` : '/medical-history'
   const {
     loading, loadError, patient, data, step, draftRestored, draftSavedAt,
     saveStatus, updateData, goToStep, discardDraft, finalize, syncNow,
@@ -57,7 +61,7 @@ export function MedicalHistoryWizard() {
     } else {
       toast.success('Progreso guardado')
     }
-    navigate('/medical-history')
+    navigate(exitTo)
   }
 
   const handleFinish = async () => {
@@ -71,7 +75,7 @@ export function MedicalHistoryWizard() {
     } else {
       toast.success('Historia médica guardada')
     }
-    navigate('/medical-history')
+    navigate(exitTo)
   }
 
   return (
@@ -79,7 +83,7 @@ export function MedicalHistoryWizard() {
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3">
           <button
-            onClick={() => navigate('/medical-history')}
+            onClick={() => navigate(exitTo)}
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors mt-0.5"
             aria-label="Volver"
           >
@@ -104,6 +108,8 @@ export function MedicalHistoryWizard() {
       <Card padding="lg">
         <Component data={data} onChange={updateData} />
       </Card>
+
+      {requestId && patientId && <RequestContextPanel patientId={patientId} requestId={requestId} />}
 
       <div className="flex items-center justify-between gap-3 pb-2">
         <button

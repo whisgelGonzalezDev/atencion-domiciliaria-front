@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, MapPin, Clock, ChevronRight,
-  PhoneCall, User, Map, Stethoscope, Check, Star, MessageCircle, Ban,
+  PhoneCall, User, Map, Stethoscope, Check, Star, MessageCircle, Ban, ClipboardList,
 } from 'lucide-react'
 import { requestsApi } from '@/core/api/requests.api'
 import { requestingEntitiesApi, type RequestingEntity } from '@/core/api/requesting-entities.api'
@@ -195,6 +195,7 @@ export function RequestDetailView() {
   }
 
   const canAddNote = canManage || (isDoctor && req.doctor?.id === user?.doctorId)
+  const canOpenHistory = isAdmin || (isDoctor && req.doctor?.id === user?.doctorId)
   const currentStep = stateToStep(req.state)
   const isCancelled = req.state === 'cancelled'
   const isTerminal = req.state === 'done' || isCancelled
@@ -381,7 +382,18 @@ export function RequestDetailView() {
 
           {/* Attachments */}
           <Card padding="md">
-            <AttachmentsSection requestId={req.id} canUpload={canAddNote} />
+            <AttachmentsSection requestId={req.id} canUpload={false} />
+            {canOpenHistory ? (
+              <button
+                type="button"
+                onClick={() => navigate(`/medical-history/${req.patient.id}?solicitud=${req.id}`)}
+                className="mt-3 inline-flex items-center gap-1.5 h-8 px-3 rounded text-xs font-medium border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+              >
+                <ClipboardList size={12} /> Abrir historia médica para adjuntar archivos
+              </button>
+            ) : (
+              <p className="mt-3 text-[11px] text-zinc-400">Los archivos se adjuntan desde la historia médica, por el médico asignado o el administrador.</p>
+            )}
           </Card>
         </div>
 

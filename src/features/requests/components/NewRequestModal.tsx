@@ -5,9 +5,10 @@ import { type PriorityId } from '@/data/medData'
 import { requestsApi } from '@/core/api/requests.api'
 import { zonesApi } from '@/core/api/zones.api'
 import { patientsApi } from '@/core/api/patients.api'
+import { doctorsApi } from '@/core/api/doctors.api'
 import { formatIdNumber, normalizeIdNumber } from '@/core/utils/idNumber'
 import { requestingEntitiesApi, type RequestingEntity } from '@/core/api/requesting-entities.api'
-import type { Zone } from '@/core/api/types'
+import type { Doctor, Zone } from '@/core/api/types'
 import { toast } from 'sonner'
 
 interface NewRequestModalProps {
@@ -32,6 +33,8 @@ export function NewRequestModal({ open, onClose, onCreated }: NewRequestModalPro
   const [zones, setZones] = useState<Zone[]>([])
   const [entities, setEntities] = useState<RequestingEntity[]>([])
   const [entityId, setEntityId] = useState('')
+  const [doctors, setDoctors] = useState<Doctor[]>([])
+  const [doctorId, setDoctorId] = useState('')
 
   const [idNumber, setIdNumber] = useState('')
   const [matched, setMatched] = useState<{ id: string; name: string } | null>(null)
@@ -50,6 +53,7 @@ export function NewRequestModal({ open, onClose, onCreated }: NewRequestModalPro
 
   useEffect(() => {
     zonesApi.getAll().then(setZones).catch(() => {})
+    doctorsApi.getAll('available').then(setDoctors).catch(() => {})
     requestingEntitiesApi.getAll().then((all) => setEntities(all.filter((e) => e.active))).catch(() => {})
   }, [])
 
@@ -99,8 +103,9 @@ export function NewRequestModal({ open, onClose, onCreated }: NewRequestModalPro
         ...(notes.trim() ? { additionalNotes: notes.trim() } : {}),
         zoneId: zone,
         ...(entityId ? { requestingEntityId: entityId } : {}),
+        ...(doctorId ? { doctorId } : {}),
       })
-      toast.success('Solicitud creada · pendiente de asignación')
+      toast.success(doctorId ? 'Solicitud creada · médico asignado' : 'Solicitud creada · pendiente de asignación')
       onCreated?.()
       handleClose()
     } catch (err) {
@@ -125,7 +130,7 @@ export function NewRequestModal({ open, onClose, onCreated }: NewRequestModalPro
 
   const handleClose = () => {
     setIdNumber(''); setMatched(null); setName(''); setAge(''); setPhone(''); setBlood(''); setAddress('')
-    setZone(''); setEntityId(''); setRefs(''); setSymptoms(''); setNotes('')
+    setZone(''); setEntityId(''); setDoctorId(''); setRefs(''); setSymptoms(''); setNotes('')
     setPriority('mid'); setErrors({}); setLoading(false)
     onClose()
   }
@@ -220,6 +225,16 @@ export function NewRequestModal({ open, onClose, onCreated }: NewRequestModalPro
                       <option value="">Particular / sin entidad</option>
                       {entities.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
                     </select>
+                  </div>
+                )}
+                {doctors.length > 0 && (
+                  <div className="col-span-6 space-y-1">
+                    <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">Asignar médico</label>
+                    <select value={doctorId} onChange={e => setDoctorId(e.target.value)} className={inputCls(false)}>
+                      <option value="">Asignar después</option>
+                      {doctors.map(d => <option key={d.id} value={d.id}>{d.name} · {d.specialty}</option>)}
+                    </select>
+                    <p className="text-[10px] text-zinc-400">Solo médicos disponibles. Al asignarlo la solicitud pasa a "en camino".</p>
                   </div>
                 )}
                 <div className="col-span-6 space-y-1">

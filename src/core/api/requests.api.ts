@@ -41,6 +41,8 @@ export const requestsApi = {
     additionalNotes?: string
     zoneId: string
     requestingEntityId?: string
+    /** Assigns an available doctor right away (the request starts "en camino"). */
+    doctorId?: string
   }) => apiClient<MedRequest>('/requests', { method: 'POST', body: JSON.stringify(body) }),
 
   advanceState: (id: string) =>

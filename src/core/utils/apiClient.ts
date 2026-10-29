@@ -1,3 +1,4 @@
+import { currentUserId } from '@/core/offline/currentUser'
 import { enqueueAction } from '@/core/offline/queue'
 
 export class ApiError extends Error {
@@ -29,6 +30,8 @@ type RequestOptions = Omit<RequestInit, 'body'> & {
   params?: Record<string, string | number | boolean>
   /** Human-readable label shown while this action is queued offline. */
   offlineDescription?: string
+  /** Queued actions with the same key collapse into the latest one (use for whole-resource PATCHes). */
+  offlineKey?: string
 }
 
 export const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api'
@@ -56,7 +59,7 @@ export async function apiClient<T>(
   endpoint: string,
   options: RequestOptions = {},
 ): Promise<T> {
-  const { body, params, headers = {}, offlineDescription, method = 'GET', ...rest } = options
+  const { body, params, headers = {}, offlineDescription, offlineKey, method = 'GET', ...rest } = options
   const url = buildUrl(endpoint, params)
   const token = localStorage.getItem('auth_token')
   const isMutating = method !== 'GET'
@@ -82,6 +85,8 @@ export async function apiClient<T>(
         endpoint: endpoint + url.search,
         body,
         description: offlineDescription ?? endpoint,
+        key: offlineKey,
+        userId: currentUserId(),
       })
       throw new OfflineQueuedError()
     }

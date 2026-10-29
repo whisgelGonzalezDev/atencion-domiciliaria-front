@@ -21,6 +21,7 @@ import { GaleriaView } from '@/features/gallery/GaleriaView'
 import { StatisticsView } from '@/features/statistics/StatisticsView'
 import { MedicalHistoryListView } from '@/features/medical-history/MedicalHistoryListView'
 import { MedicalHistoryWizard } from '@/features/medical-history/MedicalHistoryWizard'
+import { TemplatesView } from '@/features/templates/TemplatesView'
 import { AdminSettingsView } from '@/features/admin-settings/AdminSettingsView'
 import { ProtectedRoute } from './ProtectedRoute'
 import { RoleHomeRedirect } from './RoleHomeRedirect'
@@ -186,6 +187,16 @@ const protectedRoutes: RouteObject[] = [
       <ProtectedRoute roles={['admin', 'doctor']}>
         <ErrorBoundary>
           <MedicalHistoryWizard />
+        </ErrorBoundary>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/templates',
+    element: (
+      <ProtectedRoute roles={['admin']}>
+        <ErrorBoundary>
+          <TemplatesView />
         </ErrorBoundary>
       </ProtectedRoute>
     ),

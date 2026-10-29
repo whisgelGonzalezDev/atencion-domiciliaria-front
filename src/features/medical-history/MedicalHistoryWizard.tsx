@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowRight, Check } from 'lucide-react'
 import { toast } from 'sonner'
 import { Card } from '@/core/components/Card'
 import { useMedicalHistoryDraft } from './useMedicalHistoryDraft'
+import { addRecipeToMedications } from './recipeToMedications'
 import { StepProgress } from './components/StepProgress'
 import { RequestContextPanel } from './components/RequestContextPanel'
 import { DraftBanner } from './components/DraftBanner'
@@ -28,12 +29,22 @@ export function MedicalHistoryWizard() {
   const { patientId } = useParams<{ patientId: string }>()
   const navigate = useNavigate()
   // Set when the history was opened from a request: files are attached to that request.
-  const requestId = useSearchParams()[0].get('solicitud')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const requestId = searchParams.get('solicitud')
+  const autoPasteRecipe = searchParams.get('recipe') === '1'
   const exitTo = requestId ? `/requests/${requestId}` : '/medical-history'
   const {
     loading, loadError, patient, data, step, draftRestored, draftSavedAt,
     saveStatus, updateData, goToStep, discardDraft, finalize, syncNow,
   } = useMedicalHistoryDraft(patientId ?? '')
+
+  // Appends the ficha's récipe to "Medicación actual" (step 0) and shows it.
+  const pasteRecipe = (recipeText: string): number => {
+    const { added } = addRecipeToMedications(data.currentMedications, recipeText)
+    if (added > 0) updateData(prev => ({ ...prev, currentMedications: addRecipeToMedications(prev.currentMedications, recipeText).next }))
+    goToStep(0)
+    return added
+  }
 
   if (loading) {
     return (
@@ -109,7 +120,11 @@ export function MedicalHistoryWizard() {
         <Component data={data} onChange={updateData} />
       </Card>
 
-      {requestId && patientId && <RequestContextPanel patientId={patientId} requestId={requestId} />}
+      {requestId && patientId && <RequestContextPanel
+          patientId={patientId} requestId={requestId} onPasteRecipe={pasteRecipe}
+          autoPasteRecipe={autoPasteRecipe}
+          onAutoPasted={() => setSearchParams(prev => { prev.delete('recipe'); return prev }, { replace: true })}
+        />}
 
       <div className="flex items-center justify-between gap-3 pb-2">
         <button

@@ -31,6 +31,7 @@ export const requestsApi = {
     priority: string
     patientId?: string
     patientName: string
+    patientIdNumber: string
     patientAge: number
     patientPhone: string
     bloodType?: string

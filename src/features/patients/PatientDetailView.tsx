@@ -1,3 +1,4 @@
+import { formatIdNumber, normalizeIdNumber } from '@/core/utils/idNumber'
 import { useEffect, useState, type FormEvent } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Droplet, Phone, Calendar, History, Save } from 'lucide-react'
@@ -31,6 +32,7 @@ export function PatientDetailView() {
 
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState('')
+  const [idNumber, setIdNumber] = useState('')
   const [age, setAge] = useState('')
   const [phone, setPhone] = useState('')
   const [blood, setBlood] = useState('')
@@ -42,7 +44,7 @@ export function PatientDetailView() {
     patientsApi.getById(id)
       .then(data => {
         setPatient(data)
-        setName(data.name); setAge(String(data.age)); setPhone(data.phone)
+        setName(data.name); setIdNumber(formatIdNumber(data.idNumber)); setAge(String(data.age)); setPhone(data.phone)
         setBlood(data.bloodType ?? ''); setHistoryShort(data.historyShort ?? '')
       })
       .catch(() => setNotFound(true))
@@ -62,6 +64,7 @@ export function PatientDetailView() {
     try {
       const updated = await patientsApi.update(id, {
         name: name.trim(),
+        ...(idNumber.trim() ? { idNumber: idNumber.trim() } : {}),
         age: Number(age),
         phone: phone.trim(),
         bloodType: blood || undefined,
@@ -110,7 +113,7 @@ export function PatientDetailView() {
           <Avatar name={patient.name} size={44} />
           <div>
             <h1 className="text-xl font-semibold text-zinc-900 dark:text-white">{patient.name}</h1>
-            <p className="text-xs text-zinc-400">{patient.age} años · {patient.phone}</p>
+            <p className="text-xs text-zinc-400">{patient.idNumber ? `${formatIdNumber(patient.idNumber)} · ` : ''}{patient.age} años · {patient.phone}</p>
           </div>
         </div>
       </div>
@@ -131,6 +134,11 @@ export function PatientDetailView() {
               <div className="space-y-1">
                 <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">Nombre</label>
                 <input value={name} onChange={e => setName(e.target.value)} className={inputCls()} />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">Cédula / documento</label>
+                <input value={idNumber} onChange={e => setIdNumber(e.target.value)} placeholder="V-12345678" className={inputCls()} />
+                {idNumber.trim() && !normalizeIdNumber(idNumber) && <p className="text-[10px] text-red-500">Documento no válido</p>}
               </div>
               <div className="space-y-1">
                 <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">Edad</label>
@@ -168,6 +176,7 @@ export function PatientDetailView() {
           </form>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+            <div><p className="text-[10px] text-zinc-400">Cédula / documento</p><p className="font-mono text-xs text-zinc-700 dark:text-zinc-300">{formatIdNumber(patient.idNumber) || 'Sin registrar'}</p></div>
             <div><p className="text-[10px] text-zinc-400">Edad</p><p className="font-medium text-zinc-900 dark:text-white">{patient.age} años</p></div>
             <div><p className="text-[10px] text-zinc-400 flex items-center gap-1"><Phone size={9} /> Teléfono</p><p className="font-mono text-xs text-zinc-700 dark:text-zinc-300">{patient.phone}</p></div>
             <div><p className="text-[10px] text-zinc-400 flex items-center gap-1"><Droplet size={9} /> Tipo sanguíneo</p><p className="font-medium text-zinc-900 dark:text-white">{patient.bloodType ?? '—'}</p></div>

@@ -4,6 +4,8 @@ import { X, MapPin } from 'lucide-react'
 import { type PriorityId } from '@/data/medData'
 import { requestsApi } from '@/core/api/requests.api'
 import { zonesApi } from '@/core/api/zones.api'
+import { patientsApi } from '@/core/api/patients.api'
+import { formatIdNumber, normalizeIdNumber } from '@/core/utils/idNumber'
 import { requestingEntitiesApi, type RequestingEntity } from '@/core/api/requesting-entities.api'
 import type { Zone } from '@/core/api/types'
 import { toast } from 'sonner'
@@ -17,6 +19,7 @@ interface NewRequestModalProps {
 const BLOOD_TYPES = ['A+','A-','B+','B-','AB+','AB-','O+','O-']
 
 interface FormErrors {
+  idNumber?: string
   name?: string
   age?: string
   phone?: string
@@ -30,6 +33,8 @@ export function NewRequestModal({ open, onClose, onCreated }: NewRequestModalPro
   const [entities, setEntities] = useState<RequestingEntity[]>([])
   const [entityId, setEntityId] = useState('')
 
+  const [idNumber, setIdNumber] = useState('')
+  const [matched, setMatched] = useState<{ id: string; name: string } | null>(null)
   const [name, setName] = useState('')
   const [age, setAge] = useState('')
   const [phone, setPhone] = useState('')
@@ -48,8 +53,23 @@ export function NewRequestModal({ open, onClose, onCreated }: NewRequestModalPro
     requestingEntitiesApi.getAll().then((all) => setEntities(all.filter((e) => e.active))).catch(() => {})
   }, [])
 
+  // The cédula identifies the patient: if one is already registered, reuse its data instead of retyping it.
+  const lookupPatient = async () => {
+    const canonical = normalizeIdNumber(idNumber)
+    if (!canonical) return
+    try {
+      const res = await patientsApi.getAll({ search: canonical, limit: 5 })
+      const found = res.data.find(p => p.idNumber === canonical)
+      if (!found) return
+      setMatched({ id: found.id, name: found.name })
+      setIdNumber(formatIdNumber(canonical))
+      setName(found.name); setAge(String(found.age)); setPhone(found.phone); setBlood(found.bloodType ?? '')
+    } catch { /* offline or unavailable: the server still checks the cédula on submit */ }
+  }
+
   const validate = (): boolean => {
     const e: FormErrors = {}
+    if (!normalizeIdNumber(idNumber)) e.idNumber = 'Ingresa una cédula o documento válido (5 a 20 letras o números)'
     if (!name.trim()) e.name = 'El nombre es requerido'
     if (!age.trim() || isNaN(Number(age)) || Number(age) < 0 || Number(age) > 120) e.age = 'Edad inválida (0–120)'
     if (!phone.trim()) e.phone = 'El teléfono es requerido'
@@ -67,7 +87,9 @@ export function NewRequestModal({ open, onClose, onCreated }: NewRequestModalPro
     try {
       await requestsApi.create({
         priority,
+        ...(matched ? { patientId: matched.id } : {}),
         patientName: name.trim(),
+        patientIdNumber: idNumber.trim(),
         patientAge: Number(age),
         patientPhone: phone.trim(),
         ...(blood ? { bloodType: blood } : {}),
@@ -102,7 +124,7 @@ export function NewRequestModal({ open, onClose, onCreated }: NewRequestModalPro
   }
 
   const handleClose = () => {
-    setName(''); setAge(''); setPhone(''); setBlood(''); setAddress('')
+    setIdNumber(''); setMatched(null); setName(''); setAge(''); setPhone(''); setBlood(''); setAddress('')
     setZone(''); setEntityId(''); setRefs(''); setSymptoms(''); setNotes('')
     setPriority('mid'); setErrors({}); setLoading(false)
     onClose()
@@ -133,6 +155,16 @@ export function NewRequestModal({ open, onClose, onCreated }: NewRequestModalPro
                 <p className="text-sm font-semibold text-zinc-900 dark:text-white">Datos del paciente</p>
               </div>
               <div className="grid grid-cols-6 gap-3">
+                <div className="col-span-6 sm:col-span-3 space-y-1">
+                  <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">Cédula / documento de identidad *</label>
+                  <input
+                    value={idNumber} onChange={e => { setIdNumber(e.target.value); setMatched(null) }} onBlur={lookupPatient}
+                    placeholder="V-12345678" className={inputCls(!!errors.idNumber)} autoFocus
+                  />
+                  {errors.idNumber && <p className="text-[10px] text-red-500">{errors.idNumber}</p>}
+                  {matched && <p className="text-[10px] text-emerald-600 dark:text-emerald-400">Paciente registrado: {matched.name}. Se usaron sus datos.</p>}
+                </div>
+                <div className="hidden sm:block sm:col-span-3" />
                 <div className="col-span-4 space-y-1">
                   <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">Nombre completo *</label>
                   <input value={name} onChange={e => setName(e.target.value)} placeholder="Nombre completo" className={inputCls(!!errors.name)} />

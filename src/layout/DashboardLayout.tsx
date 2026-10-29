@@ -3,7 +3,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
   Heart, Home, List, Stethoscope, Map, Settings,
   LogOut, PanelLeft, X, Plus, Moon, Sun, Menu,
-  Users, CalendarClock, Receipt, ScrollText, UserCog, FileDown, Images, BarChart3, ClipboardList, Building2,
+  Users, CalendarClock, Receipt, ScrollText, UserCog, FileDown, Images, BarChart3, ClipboardList, Building2, FileStack,
 } from 'lucide-react'
 import { useAuth, type Role } from '@/features/auth/hooks/useAuth'
 import { useTheme } from '@/core/providers/ThemeProvider'
@@ -48,6 +48,7 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
   { to: '/reports',        label: 'Reportes',     icon: FileDown,   roles: ['admin'] },
   { to: '/galeria',        label: 'Galería',      icon: Images,     roles: ['admin'] },
   { to: '/users',          label: 'Usuarios',     icon: UserCog,    roles: ['admin'] },
+  { to: '/templates',      label: 'Plantillas',   icon: FileStack,  roles: ['admin'] },
   { to: '/admin-settings', label: 'Panel Admin',  icon: Building2,  roles: ['admin'] },
 ]
 

@@ -17,7 +17,12 @@ export const filesApi = {
   uploadForRequest: (requestId: string, file: File) => {
     const body = new FormData()
     body.append('file', file)
-    return apiClient<Attachment>(`/requests/${requestId}/attachments`, { method: 'POST', body })
+    return apiClient<Attachment>(`/requests/${requestId}/attachments`, {
+      method: 'POST',
+      body,
+      offlineFile: file,
+      offlineDescription: `Adjunto "${file.name}"`,
+    })
   },
 
   listForRequest: (requestId: string) =>

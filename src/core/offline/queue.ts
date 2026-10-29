@@ -5,6 +5,8 @@ export interface QueuedAction {
   method: 'POST' | 'PATCH' | 'DELETE'
   endpoint: string
   body?: string
+  /** Multipart upload: the Blob lives in IndexedDB until the server accepts it. */
+  file?: { blob: Blob; name: string; field: string }
   description: string
   createdAt: number
   /** A newer action with the same key replaces any still-pending older one (whole-resource PATCHes). */

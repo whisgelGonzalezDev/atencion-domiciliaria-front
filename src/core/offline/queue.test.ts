@@ -114,6 +114,19 @@ describe('offline queue', () => {
     expect(getQueueSnapshot().actions).toHaveLength(0)
   })
 
+  it('keeps an uploaded file queued until the server accepts it', async () => {
+    const blob = new Blob(['photo-bytes'], { type: 'image/png' })
+    await enqueueAction({ method: 'POST', endpoint: '/up', description: 'foto', file: { blob, name: 'a.png', field: 'file' } })
+
+    await flushQueue(async () => ({ kind: 'offline' }))
+    const [kept] = getQueueSnapshot().actions
+    expect(kept.file?.name).toBe('a.png')
+    expect(await kept.file!.blob.text()).toBe('photo-bytes')
+
+    await flushQueue(ok)
+    expect(getQueueSnapshot().actions).toHaveLength(0)
+  })
+
   it('never replays another user’s actions', async () => {
     await enqueueAction({ ...base, body: 'mine', userId: 'u1' })
     await enqueueAction({ ...base, body: 'theirs', userId: 'u2' })

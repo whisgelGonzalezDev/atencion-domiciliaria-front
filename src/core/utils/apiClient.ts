@@ -32,6 +32,8 @@ type RequestOptions = Omit<RequestInit, 'body'> & {
   offlineDescription?: string
   /** Queued actions with the same key collapse into the latest one (use for whole-resource PATCHes). */
   offlineKey?: string
+  /** Lets a multipart upload be queued offline; the file is kept in IndexedDB. */
+  offlineFile?: File
 }
 
 export const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api'
@@ -59,7 +61,7 @@ export async function apiClient<T>(
   endpoint: string,
   options: RequestOptions = {},
 ): Promise<T> {
-  const { body, params, headers = {}, offlineDescription, offlineKey, method = 'GET', ...rest } = options
+  const { body, params, headers = {}, offlineDescription, offlineKey, offlineFile, method = 'GET', ...rest } = options
   const url = buildUrl(endpoint, params)
   const token = localStorage.getItem('auth_token')
   const isMutating = method !== 'GET'
@@ -79,11 +81,13 @@ export async function apiClient<T>(
       body,
     })
   } catch {
-    if (!isFormData && isMutating && (method === 'POST' || method === 'PATCH' || method === 'DELETE')) {
+    const queueable = isFormData ? !!offlineFile : isMutating
+    if (queueable && (method === 'POST' || method === 'PATCH' || method === 'DELETE')) {
       await enqueueAction({
         method,
         endpoint: endpoint + url.search,
-        body,
+        body: isFormData ? undefined : body,
+        file: offlineFile && { blob: offlineFile, name: offlineFile.name, field: 'file' },
         description: offlineDescription ?? endpoint,
         key: offlineKey,
         userId: currentUserId(),

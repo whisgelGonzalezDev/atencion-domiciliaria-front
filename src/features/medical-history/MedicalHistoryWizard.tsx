@@ -4,6 +4,8 @@ import { toast } from 'sonner'
 import { Card } from '@/core/components/Card'
 import { useMedicalHistoryDraft } from './useMedicalHistoryDraft'
 import { addRecipeToMedications } from './recipeToMedications'
+import { attachRecipeToRequest } from './attachRecipe'
+import { useSystemSettings } from '@/core/providers/SystemSettingsProvider'
 import { StepProgress } from './components/StepProgress'
 import { RequestContextPanel } from './components/RequestContextPanel'
 import { DraftBanner } from './components/DraftBanner'
@@ -32,6 +34,7 @@ export function MedicalHistoryWizard() {
   const [searchParams, setSearchParams] = useSearchParams()
   const requestId = searchParams.get('solicitud')
   const autoPasteRecipe = searchParams.get('recipe') === '1'
+  const { settings } = useSystemSettings()
   const exitTo = requestId ? `/requests/${requestId}` : '/medical-history'
   const {
     loading, loadError, patient, data, step, draftRestored, draftSavedAt,
@@ -85,6 +88,17 @@ export function MedicalHistoryWizard() {
       toast.message('Sin conexión: la historia se finalizará automáticamente cuando vuelva la conexión.')
     } else {
       toast.success('Historia médica guardada')
+    }
+
+    // Finishing a history opened from a request hands the récipe to that request as a PDF.
+    if (requestId) {
+      try {
+        const result = await attachRecipeToRequest(requestId, settings)
+        if (result === 'attached') toast.success('Récipe en PDF adjuntado a la solicitud')
+        else if (result === 'queued') toast.message('Sin conexión: el récipe en PDF se adjuntará solo al recuperarla.')
+      } catch (err) {
+        toast.warning(`La historia se finalizó, pero no se pudo adjuntar el récipe en PDF${err instanceof Error ? `: ${err.message}` : ''}. Puedes generarlo desde la ficha.`)
+      }
     }
     navigate(exitTo)
   }

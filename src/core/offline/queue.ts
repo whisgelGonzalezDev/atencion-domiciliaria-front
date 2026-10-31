@@ -5,6 +5,8 @@ export interface QueuedAction {
   method: 'POST' | 'PATCH' | 'DELETE'
   endpoint: string
   body?: string
+  /** Multipart upload: the Blob lives in IndexedDB until the server accepts it. */
+  file?: { blob: Blob; name: string; field: string }
   description: string
   createdAt: number
   /** A newer action with the same key replaces any still-pending older one (whole-resource PATCHes). */
@@ -14,13 +16,15 @@ export interface QueuedAction {
   /** Absent means pending. Failed actions are kept so the user can retry or discard them. */
   status?: 'failed'
   lastError?: string
+  /** The server refused it because someone else changed the resource first (409). */
+  conflict?: boolean
 }
 
 export type ReplayOutcome =
   | { kind: 'ok' }
   | { kind: 'offline' }
   | { kind: 'auth' }
-  | { kind: 'rejected'; message: string }
+  | { kind: 'rejected'; message: string; conflict?: boolean }
 
 export interface FlushResult {
   synced: number
@@ -39,6 +43,7 @@ type SyncedListener = (action: QueuedAction) => void
 
 const stateListeners = new Set<StateListener>()
 const syncedListeners = new Set<SyncedListener>()
+const discardedListeners = new Set<SyncedListener>()
 let actions: QueuedAction[] = []
 let authExpired = false
 let flushing = false
@@ -75,6 +80,12 @@ export function subscribeSynced(listener: SyncedListener): () => void {
   return () => syncedListeners.delete(listener)
 }
 
+/** Fires when the user throws a queued action away, so screens can drop the local draft behind it. */
+export function subscribeDiscarded(listener: SyncedListener): () => void {
+  discardedListeners.add(listener)
+  return () => discardedListeners.delete(listener)
+}
+
 export async function enqueueAction(input: Omit<QueuedAction, 'id' | 'createdAt' | 'status' | 'lastError'>): Promise<void> {
   if (input.key) {
     const stale = (await offlineDb.getAll<QueuedAction>()).filter((a) => a.key === input.key && a.status !== 'failed')
@@ -90,15 +101,26 @@ export async function enqueueAction(input: Omit<QueuedAction, 'id' | 'createdAt'
 }
 
 export async function discardAction(id: string): Promise<void> {
+  const action = (await offlineDb.getAll<QueuedAction>()).find((a) => a.id === id)
   await offlineDb.delete(id)
+  if (action) discardedListeners.forEach((l) => l(action))
   await refreshCache()
 }
 
 export async function retryAction(id: string): Promise<void> {
   const action = (await offlineDb.getAll<QueuedAction>()).find((a) => a.id === id)
   if (!action) return
-  const { status: _status, lastError: _lastError, ...rest } = action
+  const { status: _status, lastError: _lastError, conflict: _conflict, ...rest } = action
   await offlineDb.put(rest)
+  await refreshCache()
+}
+
+/** Lets a rejected action be resubmitted with a rewritten body (e.g. a fresh baseline after a conflict). */
+export async function rewriteAndRetry(id: string, rewrite: (body: string | undefined) => string | undefined): Promise<void> {
+  const action = (await offlineDb.getAll<QueuedAction>()).find((a) => a.id === id)
+  if (!action) return
+  const { status: _status, lastError: _lastError, conflict: _conflict, ...rest } = action
+  await offlineDb.put({ ...rest, body: rewrite(action.body) })
   await refreshCache()
 }
 
@@ -133,7 +155,7 @@ export async function flushQueue(
         result.synced++
         syncedListeners.forEach((l) => l(action))
       } else {
-        await offlineDb.put({ ...action, status: 'failed', lastError: outcome.message } satisfies QueuedAction)
+        await offlineDb.put({ ...action, status: 'failed', lastError: outcome.message, conflict: outcome.conflict } satisfies QueuedAction)
         result.failed++
         result.failedDescriptions.push(action.description)
       }

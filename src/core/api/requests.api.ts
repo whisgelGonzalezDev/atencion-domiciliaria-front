@@ -71,11 +71,14 @@ export const requestsApi = {
   getWhatsAppLink: (id: string) =>
     apiClient<WhatsAppLink>(`/requests/${id}/whatsapp-link`),
 
-  updateServiceRecord: (id: string, body: ServiceRecord) =>
-    apiClient<MedRequest>(`/requests/${id}/service-record`, {
+  updateServiceRecord: (id: string, body: ServiceRecord, baseRevision?: number) => {
+    // `revision` is server-managed; the API only accepts it as `baseRevision`.
+    const { revision: _revision, ...record } = body
+    return apiClient<MedRequest>(`/requests/${id}/service-record`, {
       method: 'PATCH',
-      body: JSON.stringify(body),
+      body: JSON.stringify({ ...record, baseRevision }),
       offlineDescription: `Ficha de servicio #${id.slice(0, 8)}`,
       offlineKey: `service-record:${id}`,
-    }),
+    })
+  },
 }

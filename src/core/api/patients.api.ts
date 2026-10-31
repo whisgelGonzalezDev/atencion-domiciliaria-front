@@ -9,6 +9,7 @@ export interface PatientsFilter {
 
 export interface CreatePatientBody {
   name: string
+  idNumber: string
   age: number
   phone: string
   bloodType?: string

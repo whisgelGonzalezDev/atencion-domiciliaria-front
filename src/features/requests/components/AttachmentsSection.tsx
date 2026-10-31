@@ -10,6 +10,9 @@ const ACCEPT = '.jpg,.jpeg,.png,.webp,.heic,.heif,.pdf'
 
 const uploadEndpoint = (requestId: string) => `/requests/${requestId}/attachments`
 
+// Queued uploads may carry a query (e.g. ?replace=true), so compare the path only.
+const isUploadFor = (requestId: string, endpoint: string) => endpoint.split('?')[0] === uploadEndpoint(requestId)
+
 function PendingFileThumbnail({ action }: { action: QueuedAction }) {
   const blob = action.file!.blob
   const previewUrl = useMemo(() => (blob.type.startsWith('image/') ? URL.createObjectURL(blob) : null), [blob])
@@ -56,11 +59,11 @@ export function AttachmentsSection({ requestId, canUpload }: AttachmentsSectionP
   }, [load])
 
   useEffect(() => subscribeQueue(({ actions }) =>
-    setQueued(actions.filter((a) => a.file && a.endpoint === uploadEndpoint(requestId)))), [requestId])
+    setQueued(actions.filter((a) => a.file && isUploadFor(requestId, a.endpoint)))), [requestId])
 
   // A photo taken offline just reached the server: show it as a real attachment.
   useEffect(() => subscribeSynced((a) => {
-    if (a.file && a.endpoint === uploadEndpoint(requestId)) load()
+    if (a.file && isUploadFor(requestId, a.endpoint)) load()
   }), [requestId, load])
 
   const handleFileChosen = async (e: React.ChangeEvent<HTMLInputElement>) => {

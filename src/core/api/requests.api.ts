@@ -31,6 +31,7 @@ export const requestsApi = {
     priority: string
     patientId?: string
     patientName: string
+    patientIdNumber: string
     patientAge: number
     patientPhone: string
     bloodType?: string
@@ -39,6 +40,9 @@ export const requestsApi = {
     symptoms: string
     additionalNotes?: string
     zoneId: string
+    requestingEntityId?: string
+    /** Assigns an available doctor right away (the request starts "en camino"). */
+    doctorId?: string
   }) => apiClient<MedRequest>('/requests', { method: 'POST', body: JSON.stringify(body) }),
 
   advanceState: (id: string) =>
@@ -65,6 +69,7 @@ export const requestsApi = {
     symptoms: string
     additionalNotes: string
     priority: string
+    requestingEntityId: string | null
   }>) =>
     apiClient<MedRequest>(`/requests/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
 

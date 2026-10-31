@@ -11,6 +11,8 @@ export interface Doctor {
 export interface PatientInfo {
   id: string
   name: string
+  /** Canonical cédula / document, e.g. V12345678. Missing on patients registered before it existed. */
+  idNumber?: string | null
   age: number
   phone: string
   bloodType?: string
@@ -20,6 +22,7 @@ export interface PatientInfo {
 export interface Patient {
   id: string
   name: string
+  idNumber?: string | null
   age: number
   phone: string
   bloodType?: string
@@ -47,6 +50,8 @@ export interface MedRequest {
   callTime: string
   minutesAgo: number
   zone: { id: string; name: string }
+  /** Organization that asked for the visit; null uses the default document formats. */
+  requestingEntity?: { id: string; name: string } | null
   doctor?: Doctor
   vitals?: { bp: string; hr: number; temp: string; spo2: number }
   notes: Note[]

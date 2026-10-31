@@ -1,13 +1,16 @@
 import type { AffiliateInfo, ServiceRecord } from '@/core/api/types'
 import { inputCls, labelCls } from '../../formStyles'
+import { formatIdNumber } from '@/core/utils/idNumber'
 import { SectionCard } from './SectionCard'
 
 interface AffiliateInfoCardProps {
   data: ServiceRecord
   update: (updater: (prev: ServiceRecord) => ServiceRecord) => void
+  /** Cédula registered on the patient; shown when the ficha has none of its own. */
+  patientIdNumber?: string | null
 }
 
-export function AffiliateInfoCard({ data, update }: AffiliateInfoCardProps) {
+export function AffiliateInfoCard({ data, update, patientIdNumber }: AffiliateInfoCardProps) {
   const set = (key: keyof AffiliateInfo, value: string) =>
     update(prev => ({ ...prev, affiliate: { ...prev.affiliate, [key]: value } }))
 
@@ -18,7 +21,7 @@ export function AffiliateInfoCard({ data, update }: AffiliateInfoCardProps) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className={labelCls}>Cédula de identidad</label>
-          <input value={a.idNumber} onChange={e => set('idNumber', e.target.value)} className={inputCls()} placeholder="V-00000000" />
+          <input value={a.idNumber} onChange={e => set('idNumber', e.target.value)} className={inputCls()} placeholder={formatIdNumber(patientIdNumber) || 'V-00000000'} />
         </div>
         <div>
           <label className={labelCls}>Sexo</label>

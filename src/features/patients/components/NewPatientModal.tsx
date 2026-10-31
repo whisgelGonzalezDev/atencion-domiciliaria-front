@@ -4,6 +4,7 @@ import { X } from 'lucide-react'
 import { patientsApi } from '@/core/api/patients.api'
 import type { Patient } from '@/core/api/types'
 import { toast } from 'sonner'
+import { normalizeIdNumber } from '@/core/utils/idNumber'
 
 interface NewPatientModalProps {
   open: boolean
@@ -14,12 +15,14 @@ interface NewPatientModalProps {
 const BLOOD_TYPES = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
 
 interface FormErrors {
+  idNumber?: string
   name?: string
   age?: string
   phone?: string
 }
 
 export function NewPatientModal({ open, onClose, onCreated }: NewPatientModalProps) {
+  const [idNumber, setIdNumber] = useState('')
   const [name, setName] = useState('')
   const [age, setAge] = useState('')
   const [phone, setPhone] = useState('')
@@ -30,6 +33,7 @@ export function NewPatientModal({ open, onClose, onCreated }: NewPatientModalPro
 
   const validate = (): boolean => {
     const e: FormErrors = {}
+    if (!normalizeIdNumber(idNumber)) e.idNumber = 'Ingresa una cédula o documento válido (5 a 20 letras o números)'
     if (!name.trim()) e.name = 'El nombre es requerido'
     if (!age.trim() || isNaN(Number(age)) || Number(age) < 0 || Number(age) > 120) e.age = 'Edad inválida (0–120)'
     if (!phone.trim()) e.phone = 'El teléfono es requerido'
@@ -44,6 +48,7 @@ export function NewPatientModal({ open, onClose, onCreated }: NewPatientModalPro
     try {
       const patient = await patientsApi.create({
         name: name.trim(),
+        idNumber: idNumber.trim(),
         age: Number(age),
         phone: phone.trim(),
         ...(blood ? { bloodType: blood } : {}),
@@ -61,7 +66,7 @@ export function NewPatientModal({ open, onClose, onCreated }: NewPatientModalPro
   }
 
   const handleClose = () => {
-    setName(''); setAge(''); setPhone(''); setBlood(''); setHistoryShort('')
+    setIdNumber(''); setName(''); setAge(''); setPhone(''); setBlood(''); setHistoryShort('')
     setErrors({}); setLoading(false)
     onClose()
   }
@@ -80,6 +85,12 @@ export function NewPatientModal({ open, onClose, onCreated }: NewPatientModalPro
         </div>
 
         <form onSubmit={handleSubmit} className="px-5 py-5 space-y-4">
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">Cédula / documento de identidad *</label>
+            <input value={idNumber} onChange={e => setIdNumber(e.target.value)} placeholder="V-12345678" className={inputCls(!!errors.idNumber)} autoFocus />
+            {errors.idNumber && <p className="text-[10px] text-red-500">{errors.idNumber}</p>}
+          </div>
+
           <div className="space-y-1">
             <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">Nombre completo *</label>
             <input value={name} onChange={e => setName(e.target.value)} placeholder="Nombre completo" className={inputCls(!!errors.name)} />

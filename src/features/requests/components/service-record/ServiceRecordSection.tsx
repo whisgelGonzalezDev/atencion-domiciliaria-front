@@ -35,7 +35,7 @@ export function ServiceRecordSection({ request, history, onNavigateHistory }: Se
       </div>
 
       <ServiceLogisticsCard data={data} update={update} address={request.address} />
-      <AffiliateInfoCard data={data} update={update} />
+      <AffiliateInfoCard data={data} update={update} patientIdNumber={request.patient.idNumber} />
       <AttentionHistoryTable history={history} onNavigate={onNavigateHistory} />
       <ClinicalNarrativeCard data={data} update={update} />
       <SwabTestCard data={data} update={update} />

@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, MapPin, Clock, ChevronRight,
-  PhoneCall, User, Map, Stethoscope, Check, Star, MessageCircle, Ban,
+  PhoneCall, User, Map, Stethoscope, Check, Star, MessageCircle, Ban, ClipboardList,
 } from 'lucide-react'
 import { requestsApi } from '@/core/api/requests.api'
+import { requestingEntitiesApi, type RequestingEntity } from '@/core/api/requesting-entities.api'
 import type { MedRequest } from '@/core/api/types'
 import { StateBadge } from '@/components/ui/StateBadge'
 import { PriorityPill } from '@/components/ui/PriorityPill'
@@ -61,6 +62,7 @@ export function RequestDetailView() {
   const [cancelling, setCancelling] = useState(false)
   const [sendingWhatsApp, setSendingWhatsApp] = useState(false)
   const [history, setHistory] = useState<MedRequest[]>([])
+  const [entities, setEntities] = useState<RequestingEntity[]>([])
 
   useEffect(() => {
     if (!id) { setNotFound(true); setLoading(false); return }
@@ -79,6 +81,25 @@ export function RequestDetailView() {
       .then(res => setHistory(res.data.filter(r => r.id !== req.id)))
       .catch(() => setHistory([]))
   }, [req?.patient.id, req?.id])
+
+  useEffect(() => {
+    if (!canManage) return
+    requestingEntitiesApi.getAll().then(setEntities).catch(() => setEntities([]))
+  }, [canManage])
+
+  // Inactive entities can't be newly chosen, but the one already set must stay visible.
+  const entityOptions = entities.filter((e) => e.active || e.id === req?.requestingEntity?.id)
+
+  const handleEntityChange = async (entityId: string) => {
+    if (!id) return
+    try {
+      const updated = await requestsApi.update(id, { requestingEntityId: entityId || null })
+      setReq(updated)
+      toast.success('Entidad solicitante actualizada')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'No se pudo cambiar la entidad')
+    }
+  }
 
   const handleAdvanceState = async () => {
     if (!id || advancingState || step >= 4) return
@@ -174,6 +195,7 @@ export function RequestDetailView() {
   }
 
   const canAddNote = canManage || (isDoctor && req.doctor?.id === user?.doctorId)
+  const canOpenHistory = isAdmin || (isDoctor && req.doctor?.id === user?.doctorId)
   const currentStep = stateToStep(req.state)
   const isCancelled = req.state === 'cancelled'
   const isTerminal = req.state === 'done' || isCancelled
@@ -255,6 +277,22 @@ export function RequestDetailView() {
               <div><p className="text-[10px] text-zinc-400">Teléfono</p><p className="font-mono text-xs text-zinc-700 dark:text-zinc-300">{req.patient.phone}</p></div>
               <div className="col-span-2"><p className="text-[10px] text-zinc-400">Dirección</p><p className="text-zinc-700 dark:text-zinc-300 flex items-center gap-1"><MapPin size={11} className="text-zinc-400" />{req.address}</p></div>
               <div><p className="text-[10px] text-zinc-400">Zona</p><p className="text-zinc-700 dark:text-zinc-300">{req.zone.name}</p></div>
+              <div>
+                <p className="text-[10px] text-zinc-400">Entidad solicitante</p>
+                {canManage && req.state !== 'done' && req.state !== 'cancelled' ? (
+                  <select
+                    value={req.requestingEntity?.id ?? ''}
+                    onChange={(e) => void handleEntityChange(e.target.value)}
+                    aria-label="Entidad solicitante"
+                    className="mt-0.5 w-full rounded border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-1.5 py-1 text-xs text-zinc-700 dark:text-zinc-300"
+                  >
+                    <option value="">Particular / sin entidad</option>
+                    {entityOptions.map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}
+                  </select>
+                ) : (
+                  <p className="text-zinc-700 dark:text-zinc-300">{req.requestingEntity?.name ?? 'Particular'}</p>
+                )}
+              </div>
             </div>
             {req.patient.historyShort && (
               <div className="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
@@ -344,7 +382,18 @@ export function RequestDetailView() {
 
           {/* Attachments */}
           <Card padding="md">
-            <AttachmentsSection requestId={req.id} canUpload={canAddNote} />
+            <AttachmentsSection requestId={req.id} canUpload={false} />
+            {canOpenHistory ? (
+              <button
+                type="button"
+                onClick={() => navigate(`/medical-history/${req.patient.id}?solicitud=${req.id}`)}
+                className="mt-3 inline-flex items-center gap-1.5 h-8 px-3 rounded text-xs font-medium border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+              >
+                <ClipboardList size={12} /> Abrir historia médica para adjuntar archivos
+              </button>
+            ) : (
+              <p className="mt-3 text-[11px] text-zinc-400">Los archivos se adjuntan desde la historia médica, por el médico asignado o el administrador.</p>
+            )}
           </Card>
         </div>
 

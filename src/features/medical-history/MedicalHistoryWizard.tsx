@@ -1,9 +1,13 @@
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react'
 import { toast } from 'sonner'
 import { Card } from '@/core/components/Card'
 import { useMedicalHistoryDraft } from './useMedicalHistoryDraft'
+import { addRecipeToMedications } from './recipeToMedications'
+import { attachRecipeToRequest } from './attachRecipe'
+import { useSystemSettings } from '@/core/providers/SystemSettingsProvider'
 import { StepProgress } from './components/StepProgress'
+import { RequestContextPanel } from './components/RequestContextPanel'
 import { DraftBanner } from './components/DraftBanner'
 import { SaveStatusIndicator } from './components/SaveStatusIndicator'
 import { PathologicalStep } from './steps/PathologicalStep'
@@ -26,10 +30,24 @@ const STEPS: { label: string; Component: (props: StepProps) => React.ReactElemen
 export function MedicalHistoryWizard() {
   const { patientId } = useParams<{ patientId: string }>()
   const navigate = useNavigate()
+  // Set when the history was opened from a request: files are attached to that request.
+  const [searchParams, setSearchParams] = useSearchParams()
+  const requestId = searchParams.get('solicitud')
+  const autoPasteRecipe = searchParams.get('recipe') === '1'
+  const { settings } = useSystemSettings()
+  const exitTo = requestId ? `/requests/${requestId}` : '/medical-history'
   const {
     loading, loadError, patient, data, step, draftRestored, draftSavedAt,
     saveStatus, updateData, goToStep, discardDraft, finalize, syncNow,
   } = useMedicalHistoryDraft(patientId ?? '')
+
+  // Appends the ficha's récipe to "Medicación actual" (step 0) and shows it.
+  const pasteRecipe = (recipeText: string): number => {
+    const { added } = addRecipeToMedications(data.currentMedications, recipeText)
+    if (added > 0) updateData(prev => ({ ...prev, currentMedications: addRecipeToMedications(prev.currentMedications, recipeText).next }))
+    goToStep(0)
+    return added
+  }
 
   if (loading) {
     return (
@@ -57,7 +75,7 @@ export function MedicalHistoryWizard() {
     } else {
       toast.success('Progreso guardado')
     }
-    navigate('/medical-history')
+    navigate(exitTo)
   }
 
   const handleFinish = async () => {
@@ -71,7 +89,18 @@ export function MedicalHistoryWizard() {
     } else {
       toast.success('Historia médica guardada')
     }
-    navigate('/medical-history')
+
+    // Finishing a history opened from a request hands the récipe to that request as a PDF.
+    if (requestId) {
+      try {
+        const result = await attachRecipeToRequest(requestId, settings)
+        if (result === 'attached') toast.success('Récipe en PDF adjuntado a la solicitud')
+        else if (result === 'queued') toast.message('Sin conexión: el récipe en PDF se adjuntará solo al recuperarla.')
+      } catch (err) {
+        toast.warning(`La historia se finalizó, pero no se pudo adjuntar el récipe en PDF${err instanceof Error ? `: ${err.message}` : ''}. Puedes generarlo desde la ficha.`)
+      }
+    }
+    navigate(exitTo)
   }
 
   return (
@@ -79,7 +108,7 @@ export function MedicalHistoryWizard() {
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3">
           <button
-            onClick={() => navigate('/medical-history')}
+            onClick={() => navigate(exitTo)}
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors mt-0.5"
             aria-label="Volver"
           >
@@ -104,6 +133,12 @@ export function MedicalHistoryWizard() {
       <Card padding="lg">
         <Component data={data} onChange={updateData} />
       </Card>
+
+      {requestId && patientId && <RequestContextPanel
+          patientId={patientId} requestId={requestId} onPasteRecipe={pasteRecipe}
+          autoPasteRecipe={autoPasteRecipe}
+          onAutoPasted={() => setSearchParams(prev => { prev.delete('recipe'); return prev }, { replace: true })}
+        />}
 
       <div className="flex items-center justify-between gap-3 pb-2">
         <button

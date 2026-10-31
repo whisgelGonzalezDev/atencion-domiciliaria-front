@@ -11,6 +11,7 @@ import { useSystemSettings } from '@/core/providers/SystemSettingsProvider'
 import { useProductTour } from '@/core/tour/useProductTour'
 import { NewRequestModal } from '@/features/requests/components/NewRequestModal'
 import { OfflineBanner } from '@/core/components/OfflineBanner'
+import { usePrefetchForOffline } from '@/core/offline/usePrefetchForOffline'
 
 interface NavItem {
   to: string
@@ -58,6 +59,7 @@ const INACTIVE = 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:b
 
 export function DashboardLayout() {
   const { user, logout } = useAuth()
+  usePrefetchForOffline(user)
   const { settings } = useSystemSettings()
   const clinicName = settings?.clinicName || 'Atención domiciliaria'
   const isAdmin = user?.role === 'admin'

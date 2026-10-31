@@ -25,13 +25,13 @@ interface ServiceRecordSectionProps {
 }
 
 export function ServiceRecordSection({ request, history, onNavigateHistory }: ServiceRecordSectionProps) {
-  const { data, update, saveStatus } = useServiceRecordDraft(request.id, request.serviceRecord)
+  const { data, update, saveStatus, keepMine, acceptTheirs } = useServiceRecordDraft(request.id, request.serviceRecord)
 
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between gap-3">
         <ServiceTypeTabs data={data} update={update} />
-        <SaveStatusIndicator status={saveStatus} />
+        <SaveStatusIndicator status={saveStatus} onKeepMine={() => void keepMine()} onAcceptTheirs={() => void acceptTheirs()} />
       </div>
 
       <ServiceLogisticsCard data={data} update={update} address={request.address} />

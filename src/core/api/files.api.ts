@@ -22,6 +22,8 @@ export const filesApi = {
       method: 'POST',
       body,
       ...(options.replace ? { params: { replace: true } } : {}),
+      offlineFile: file,
+      offlineDescription: `Adjunto "${file.name}"`,
     })
   },
 

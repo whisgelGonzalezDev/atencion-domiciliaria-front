@@ -3,14 +3,14 @@ import { inputCls, labelCls } from '../formStyles'
 import type { StepProps } from './types'
 
 const SYSTEM_LABELS: Record<string, string> = {
-  cardiovascular: 'Cardiovascular',
-  respiratorio: 'Respiratorio',
-  digestivo: 'Digestivo',
-  genitourinario: 'Genitourinario',
-  neurologico: 'Neurológico',
-  musculoesqueletico: 'Musculoesquelético',
   piel_faneras: 'Piel y faneras',
-  endocrino: 'Endocrino',
+  cabeza: 'Cabeza',
+  ojos_orl: 'Ojos y ORL',
+  cuello: 'Cuello',
+  cardiopulmonar: 'Cardiopulmonar',
+  abdomen: 'Abdomen',
+  extremidades: 'Extremidades',
+  neurologico: 'Neurológico',
 }
 
 export function ReviewOfSystemsStep({ data, onChange }: StepProps) {

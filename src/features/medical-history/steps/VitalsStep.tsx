@@ -30,6 +30,17 @@ export function VitalsStep({ data, onChange }: StepProps) {
 
   return (
     <div className="space-y-6">
+      <div className="space-y-1">
+        <label className={labelCls}>Examen funcional</label>
+        <textarea
+          value={data.physicalExamNotes}
+          onChange={e => onChange(prev => ({ ...prev, physicalExamNotes: e.target.value }))}
+          placeholder="Estado general, hallazgos relevantes a la inspección..."
+          rows={4}
+          className={[inputCls(), 'resize-none'].join(' ')}
+        />
+      </div>
+
       <div>
         <h3 className="text-sm font-semibold text-zinc-900 dark:text-white mb-1">Signos vitales basales</h3>
         <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-3">Valores de referencia del paciente en condiciones normales.</p>
@@ -61,17 +72,6 @@ export function VitalsStep({ data, onChange }: StepProps) {
             </div>
           ))}
         </div>
-      </div>
-
-      <div className="space-y-1">
-        <label className={labelCls}>Hallazgos del examen físico</label>
-        <textarea
-          value={data.physicalExamNotes}
-          onChange={e => onChange(prev => ({ ...prev, physicalExamNotes: e.target.value }))}
-          placeholder="Estado general, hallazgos relevantes a la inspección..."
-          rows={4}
-          className={[inputCls(), 'resize-none'].join(' ')}
-        />
       </div>
     </div>
   )

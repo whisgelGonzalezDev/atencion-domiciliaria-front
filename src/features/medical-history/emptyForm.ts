@@ -14,5 +14,7 @@ export function emptyMedicalHistoryForm(): MedicalHistoryFormData {
     reviewOfSystems: {},
     activeDiagnoses: [],
     generalNotes: '',
+    patientSignatureDataUrl: null,
+    patientSignedAt: null,
   }
 }

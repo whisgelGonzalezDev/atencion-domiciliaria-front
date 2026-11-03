@@ -340,9 +340,10 @@ export interface MedicationEntry { name: string; dose?: string; frequency?: stri
 export interface FamilyHistoryEntry { relative: string; condition: string }
 export interface DiagnosisEntry { description: string; diagnosedAt?: string }
 
+// Head-to-toe exam order, as laid out on the paper checklist used during the visit.
 export const REVIEW_OF_SYSTEMS_KEYS = [
-  'cardiovascular', 'respiratorio', 'digestivo', 'genitourinario',
-  'neurologico', 'musculoesqueletico', 'piel_faneras', 'endocrino',
+  'piel_faneras', 'cabeza', 'ojos_orl', 'cuello',
+  'cardiopulmonar', 'abdomen', 'extremidades', 'neurologico',
 ] as const
 export type ReviewOfSystemsKey = typeof REVIEW_OF_SYSTEMS_KEYS[number]
 
@@ -359,6 +360,8 @@ export interface MedicalHistoryFormData {
   reviewOfSystems: Record<string, string>
   activeDiagnoses: DiagnosisEntry[]
   generalNotes: string
+  patientSignatureDataUrl: string | null
+  patientSignedAt: string | null
 }
 
 export interface MedicalHistory extends MedicalHistoryFormData {

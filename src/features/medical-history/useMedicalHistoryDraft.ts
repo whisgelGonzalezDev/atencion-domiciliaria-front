@@ -108,6 +108,8 @@ export function useMedicalHistoryDraft(patientId: string) {
               reviewOfSystems: detail.history.reviewOfSystems,
               activeDiagnoses: detail.history.activeDiagnoses,
               generalNotes: detail.history.generalNotes ?? '',
+              patientSignatureDataUrl: detail.history.patientSignatureDataUrl ?? null,
+              patientSignedAt: detail.history.patientSignedAt ?? null,
             }
           : emptyMedicalHistoryForm()
         baselineRef.current = baseline

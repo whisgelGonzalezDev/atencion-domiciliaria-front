@@ -1,5 +1,6 @@
 import { AlertTriangle } from 'lucide-react'
 import type { DiagnosisEntry } from '@/core/api/types'
+import { SignaturePad } from '@/features/requests/components/service-record/SignaturePad'
 import { DynamicRowsField } from '../components/DynamicRowsField'
 import { inputCls, labelCls } from '../formStyles'
 import type { StepProps } from './types'
@@ -48,6 +49,18 @@ export function SummaryStep({ data, onChange }: StepProps) {
         <SummaryRow label="Condiciones crónicas" value={data.chronicConditions.join(', ')} />
         <SummaryRow label="Medicación actual" value={data.currentMedications.map(m => m.name).filter(Boolean).join(', ')} />
         <SummaryRow label="Diagnósticos activos" value={data.activeDiagnoses.map(d => d.description).filter(Boolean).join(', ')} />
+      </div>
+
+      <div className="space-y-1">
+        <label className={labelCls}>Firma del paciente</label>
+        <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">El paciente firma confirmando que está de acuerdo con esta historia médica.</p>
+        <SignaturePad
+          label="Firma del paciente"
+          signedAt={data.patientSignedAt}
+          dataUrl={data.patientSignatureDataUrl}
+          onSign={(dataUrl, signedAt) => onChange(prev => ({ ...prev, patientSignatureDataUrl: dataUrl, patientSignedAt: signedAt }))}
+          onClear={() => onChange(prev => ({ ...prev, patientSignatureDataUrl: null, patientSignedAt: null }))}
+        />
       </div>
     </div>
   )
